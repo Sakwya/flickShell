@@ -25,7 +25,7 @@
 using namespace std;
 
 // some constants
-const string WHITE_=SPACE = " \t\r\n";
+const string WHITE_SPACE = " \t\r\n";
 const string SYMBOL = "|<>";
 
 #define MAX_ARGV_LEN 128
