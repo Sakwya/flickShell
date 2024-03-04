@@ -1,10 +1,36 @@
-// ==========================
-// ExpShell.cpp
-// A simple shell for Linux.
-// by z0gSh1u @ 2020-09
-// ==========================
-// Revise By Sakwya @ 2024-03
+#!/bin/bash
 
+cpp="flickShell.cpp"
+exe="flickShell"
+if ! gcc --version > /dev/null; then
+    echo "GCC 未安装或命令不存在"
+    exit 1
+fi
+
+# 检查文件是否存在
+if [ -f "$cpp" ]; then
+    echo "文件 $cpp 已存在于当前目录中。"
+    echo "是否覆盖? (y/n)"
+    read -r temp
+    if [ "$temp" == "y" ];then
+        rm $cpp
+    else
+        exit 1
+    fi
+fi
+if [ -f "$exe" ]; then
+    echo "文件 $exe 已存在于当前目录中。"
+    echo "是否覆盖? (y/n)"
+    read -r temp
+    if [ "$temp" == "y" ];then
+        rm $exe
+    else
+        exit 1
+    fi
+fi
+echo "重建文件……"
+touch $cpp
+cat <<EOF> $cpp
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
@@ -56,7 +82,7 @@ vector<string> cmd_history;
 // panic
 void panic(string hint, bool exit_ = false, int exit_code = 0) {
   if (SHOW_PANIC)
-    cerr << "[!ExpShell panic]: " << hint << endl;
+    cerr << "[!flickShell panic]: " << hint << endl;
   if (exit_)
     exit(exit_code);
 }
@@ -335,7 +361,7 @@ int process_builtin_command(string line) {
   }
   // 2 - quit
   if (line == "quit") {
-    cout << "Bye from ExpShell." << endl;
+    cout << "Bye from flickShell." << endl;
     exit(0);
   }
   // 3 - history
@@ -364,7 +390,8 @@ void run_cmd(cmd* cmd_) {
       vector<string> arg0_replace =
         string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
       ecmd->argv.erase(ecmd->argv.begin());
-      for (vector<string>::reverse_iterator it = arg0_replace.rbegin(); it < arg0_replace.rend(); it++) {
+      for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
+        it < arg0_replace.rend(); it++) {
         ecmd->argv.insert(ecmd->argv.begin(), (*it));
       }
     }
@@ -410,21 +437,26 @@ void run_cmd(cmd* cmd_) {
     // really good. now we have lhs_stdout -> pipe -> rhs_stdin
     // if fork > 0, then i'm the father
     // let's wait for my children
+    // close()会等待IO操作。
     close(pipe_fd[0]);
     close(pipe_fd[1]);
+    // 等待两个子进程退出
     int wait_status_1, wait_status_2;
     wait(&wait_status_1);
     wait(&wait_status_2);
+    // 打印子进程的退出信息
     check_wait_status(wait_status_1);
     check_wait_status(wait_status_2);
     break;
   }
   case CMD_TYPE_REDIR_IN:
+    // 可以在这里初始化flag
   case CMD_TYPE_REDIR_OUT:
   {
     redirect_cmd* rcmd = static_cast<redirect_cmd*>(cmd_);
     if (fork_wrap() == 0) {
       // i'm a child, let's satisfy the file being redirected to (or from)
+      // ====================重复判断，可以优化====================
       rcmd->fd = open_wrap(rcmd->file.c_str(), rcmd->type == CMD_TYPE_REDIR_IN
         ? REDIR_IN_OFLAG
         : REDIR_OUT_OFLAG);
@@ -469,3 +501,25 @@ int main() {
   }
   return 0;
 }
+
+EOF
+echo "文件写入完成。"
+echo "执行编译……"
+if gcc $cpp -o $exe -lstdc++; then
+  echo "编译完成。"
+else
+  echo "编译出错。请检查gcc版本。"
+  exit 1
+fi
+sudo cp ExpShell /usr/local/bin/
+echo "是否设为默认Shell? (y/n)"
+read -r temp
+if [ "$temp" == "y" ]; then
+  if sudo chsh -s /usr/local/bin/ExpShell; then
+    echo "执行完成。"
+  else
+    echo "执行失败。"
+  fi
+else
+  echo "执行完成。"
+fi

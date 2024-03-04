@@ -1,8 +1,12 @@
-## ExpShell.cpp
+## flickShell.cpp
+> Origin: ExpShell.cpp
 > A simple shell for Linux.  
 > by z0gSh1u @ 2020-09  
 > Revise By Sakwya @ 2024-03  
 
+### 常见问题
+#### 1.退格键被读入为^H
+解决方法：[https://github.com/z0gSh1u/expshell/issues/1](https://github.com/z0gSh1u/expshell/issues/1)
 ### 头文件
 #### fcntl.h  
 fcntl.h 是 C 语言中用于文件控制的头文件，其中定义了一些常量和函数原型，用于在程序中进行文件描述符的操作。  
