@@ -5,8 +5,6 @@
 // ==========================
 // Revise By Sakwya @ 2024-03
 
-
-
 #include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
@@ -44,7 +42,7 @@ int pipe_fd[2]; // r/w pipe file descriptor
 #define CHAR_BUF_SIZE 1024
 char char_buf[CHAR_BUF_SIZE];
 
-// record home directory for  and 
+// record home directory for  and
 string home_dir;
 
 // command alias
@@ -70,7 +68,7 @@ bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != -1; }
 
 bool is_symbol(char ch) { return SYMBOL.find(ch) != -1; }
 
-vector<string> string_split(const string &s, const string &delims) {
+vector<string> string_split(const string& s, const string& delims) {
   vector<string> vec;
   int p = 0, q;
   while ((q = s.find_first_of(delims, p)) != string::npos) {
@@ -85,7 +83,7 @@ vector<string> string_split(const string &s, const string &delims) {
 
 // this split function will protect string inside quote
 // ====================这段代码可以优化====================
-vector<string> string_split_protect(const string &str, const string &delims) {
+vector<string> string_split_protect(const string& str, const string& delims) {
   vector<string> vec;
   string tmp = "";
   for (int i = 0; i < str.length(); i++) {
@@ -109,18 +107,18 @@ vector<string> string_split_protect(const string &str, const string &delims) {
 }
 
 // ====================这段代码可以优化====================
-string string_split_last(const string &s, const string &delims) {
+string string_split_last(const string& s, const string& delims) {
   vector<string> split_res = string_split(s, delims);
   return split_res.at(split_res.size() - 1);
 }
 
 // ====================这段代码可以优化====================
-string string_split_first(const string &s, const string &delims) {
+string string_split_first(const string& s, const string& delims) {
   vector<string> split_res = string_split(s, delims);
   return split_res.at(0);
 }
 
-string trim(const string &s) {
+string trim(const string& s) {
   if (s.length() == 0)
     return string(s);
   int p = 0, q = s.length() - 1;
@@ -143,7 +141,7 @@ string read_line() {
 // ==========================
 void show_command_prompt() {
   // get username
-  passwd *pwd = getpwuid(getuid());
+  passwd* pwd = getpwuid(getuid());
   string username(pwd->pw_name);
   // get current working directory
   getcwd(char_buf, CHAR_BUF_SIZE);
@@ -197,7 +195,7 @@ int dup2_wrap(int fd1, int fd2) {
 }
 
 // wrapped open function that panics
-int open_wrap(const char *file, int oflag) {
+int open_wrap(const char* file, int oflag) {
   int open_ret = open(file, oflag);
   if (open_ret < 0)
     panic("open failed.", true, 1);
@@ -205,7 +203,7 @@ int open_wrap(const char *file, int oflag) {
 }
 
 // panic for wait status
-void check_wait_status(int &wait_status) {
+void check_wait_status(int& wait_status) {
   if (WIFEXITED(wait_status) == 0) { // means abnormal exit
     char buf[8];
     sprintf(buf, "%d", WEXITSTATUS(wait_status));
@@ -235,7 +233,7 @@ public:
 class exec_cmd : public cmd {
 public:
   vector<string> argv;
-  exec_cmd(vector<string> &argv) {
+  exec_cmd(vector<string>& argv) {
     this->type = CMD_TYPE_EXEC;
     this->argv = vector<string>(argv);
   }
@@ -245,10 +243,10 @@ public:
 // left | right
 class pipe_cmd : public cmd {
 public:
-  cmd *left;
-  cmd *right;
+  cmd* left;
+  cmd* right;
   pipe_cmd() { this->type = CMD_TYPE_PIPE; }
-  pipe_cmd(cmd *left, cmd *right) {
+  pipe_cmd(cmd* left, cmd* right) {
     this->type = CMD_TYPE_PIPE;
     this->left = left;
     this->right = right;
@@ -259,11 +257,11 @@ public:
 // ls > a.txt; some_program < b.txt
 class redirect_cmd : public cmd {
 public:
-  cmd *cmd_;
+  cmd* cmd_;
   string file;
   int fd;
   redirect_cmd() {}
-  redirect_cmd(int type, cmd *cmd_, string file, int fd) {
+  redirect_cmd(int type, cmd* cmd_, string file, int fd) {
     this->type = type;
     this->cmd_ = cmd_;
     this->file = file;
@@ -272,7 +270,7 @@ public:
 };
 
 // parse seg as is exec_cmd
-cmd *parse_exec_cmd(string seg) {
+cmd* parse_exec_cmd(string seg) {
   seg = trim(seg);
   vector<string> argv = string_split_protect(seg, WHITE_SPACE);
   return new exec_cmd(argv);
@@ -282,24 +280,24 @@ cmd *parse_exec_cmd(string seg) {
 // **test cases:**
 // ls -a < a.txt | grep linux > b.txt
 // some_bin "hello world" > b.txt > c.txt
-cmd *parse(string line) {
+cmd* parse(string line) {
   line = trim(line);
   string cur_read = "";
-  cmd *cur_cmd = new cmd();
+  cmd* cur_cmd = new cmd();
   int i = 0;
   while (i < line.length()) {
     if (line[i] == '<' || line[i] == '>') {
-      cmd *lhs = parse_exec_cmd(cur_read); // [lhs] < (or >) [rhs]
+      cmd* lhs = parse_exec_cmd(cur_read); // [lhs] < (or >) [rhs]
       int j = i + 1;
       while (j < line.length() && !is_symbol(line[j]))
         j++;
       string file = trim(line.substr(i + 1, j - i));
       cur_cmd = new redirect_cmd(line[i] == '<' ? CMD_TYPE_REDIR_IN
-                                                : CMD_TYPE_REDIR_OUT,
-                                 lhs, file, -1); // fd wait for filling
+        : CMD_TYPE_REDIR_OUT,
+        lhs, file, -1); // fd wait for filling
       i = j;
     } else if (line[i] == '|') {
-      cmd *rhs = parse(line.substr(i + 1)); // recursive
+      cmd* rhs = parse(line.substr(i + 1)); // recursive
       if (cur_cmd->type == CMD_TYPE_NULL)
         cur_cmd = parse_exec_cmd(cur_read);
       cur_cmd = new pipe_cmd(cur_cmd, rhs);
@@ -356,32 +354,32 @@ int process_builtin_command(string line) {
 }
 
 // run some cmd
-void run_cmd(cmd *cmd_) {
+void run_cmd(cmd* cmd_) {
   switch (cmd_->type) {
-  case CMD_TYPE_EXEC: {
-    exec_cmd *ecmd = static_cast<exec_cmd *>(cmd_);
+  case CMD_TYPE_EXEC:
+  {
+    exec_cmd* ecmd = static_cast<exec_cmd*>(cmd_);
     // process alias
     if (alias_map.count(ecmd->argv[0]) != 0) {
       vector<string> arg0_replace =
-          string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
+        string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
       ecmd->argv.erase(ecmd->argv.begin());
-      for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
-           it < arg0_replace.rend(); it++) {
+      for (vector<string>::reverse_iterator it = arg0_replace.rbegin(); it < arg0_replace.rend(); it++) {
         ecmd->argv.insert(ecmd->argv.begin(), (*it));
       }
     }
     // prepare vector<string> for execvp
-    vector<char *> argv_c_str;
+    vector<char*> argv_c_str;
     for (int i = 0; i < ecmd->argv.size(); i++) {
       string arg_trim = trim(ecmd->argv[i]);
       if (arg_trim.length() > 0) { // skip blank string
-        char *tmp = new char[MAX_ARGV_LEN];
+        char* tmp = new char[MAX_ARGV_LEN];
         strcpy(tmp, arg_trim.c_str());
         argv_c_str.push_back(tmp);
       }
     }
     argv_c_str.push_back(NULL);
-    char **argv_c_arr = &argv_c_str[0];
+    char** argv_c_arr = &argv_c_str[0];
     // vscode made wrong marco expansion here
     // second argument is ok for char** rather than char *const (*(*)())[]
     int execvp_ret = execvp(argv_c_arr[0], argv_c_arr);
@@ -389,8 +387,9 @@ void run_cmd(cmd *cmd_) {
       panic("execvp failed");
     break;
   }
-  case CMD_TYPE_PIPE: {
-    pipe_cmd *pcmd = static_cast<pipe_cmd *>(cmd_);
+  case CMD_TYPE_PIPE:
+  {
+    pipe_cmd* pcmd = static_cast<pipe_cmd*>(cmd_);
     pipe_wrap(pipe_fd);
     // fork twice to run lhs and rhs of pipe
     if (fork_wrap() == 0) {
@@ -421,15 +420,16 @@ void run_cmd(cmd *cmd_) {
     break;
   }
   case CMD_TYPE_REDIR_IN:
-  case CMD_TYPE_REDIR_OUT: {
-    redirect_cmd *rcmd = static_cast<redirect_cmd *>(cmd_);
+  case CMD_TYPE_REDIR_OUT:
+  {
+    redirect_cmd* rcmd = static_cast<redirect_cmd*>(cmd_);
     if (fork_wrap() == 0) {
       // i'm a child, let's satisfy the file being redirected to (or from)
       rcmd->fd = open_wrap(rcmd->file.c_str(), rcmd->type == CMD_TYPE_REDIR_IN
-                                                   ? REDIR_IN_OFLAG
-                                                   : REDIR_OUT_OFLAG);
+        ? REDIR_IN_OFLAG
+        : REDIR_OUT_OFLAG);
       dup2_wrap(rcmd->fd, rcmd->type == CMD_TYPE_REDIR_IN ? fileno(stdin)
-                                                          : fileno(stdout));
+        : fileno(stdout));
       run_cmd(rcmd->cmd_);
       close(rcmd->fd);
     }
@@ -448,7 +448,7 @@ void run_cmd(cmd *cmd_) {
 // entry method of the shell
 int main() {
   // system("stty erase ^H"); // fix ^H when using backspace on SSH // See Issue #1
-  init_alias();            // support command alias
+  init_alias(); // support command alias
   string line;
   int wait_status;
   while (true) {
@@ -460,7 +460,7 @@ int main() {
       continue;
     // fork a new me to execute the typed command
     if (fork_wrap() == 0) {
-      cmd *cmd_ = parse(line);
+      cmd* cmd_ = parse(line);
       run_cmd(cmd_);
       exit(0); // child exit
     }
