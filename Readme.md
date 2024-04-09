@@ -6,9 +6,9 @@
 
 ### 常见问题
 #### 1.没有readline库。
-Debian/Ubuntu 系统：sudo apt-get install libreadline-dev
-Fedora 系统：sudo dnf install readline-devel
-CentOS/RHEL 系统：sudo yum install readline-devel
+Debian/Ubuntu 系统：sudo apt-get install libreadline-dev  
+Fedora 系统：sudo dnf install readline-devel  
+CentOS/RHEL 系统：sudo yum install readline-devel  
 ### 头文件
 #### fcntl.h  
 fcntl.h 是 C 语言中用于文件控制的头文件，其中定义了一些常量和函数原型，用于在程序中进行文件描述符的操作。  
