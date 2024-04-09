@@ -2,7 +2,7 @@
 > Origin: ExpShell.cpp
 > A simple shell for Linux.  
 > by z0gSh1u @ 2020-09  
-> Revise By Sakwya @ 2024-03  
+> Revised By Sakwya @ 2024-03  
 
 ### 常见问题
 #### 1.没有readline库。
