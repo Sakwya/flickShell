@@ -46,40 +46,42 @@ cat <<EOF> $cpp
 #include <unistd.h>
 #include <vector>
 
+#include <readline/readline.h>
+#include <readline/history.h>
+
 using namespace std;
 
-// some constants
 const string WHITE_SPACE = " \t\r\n";
 const string SYMBOL = "|<>";
+
+#define ANSI_COLOR_RESET   "\x1b[0m"
+#define ANSI_COLOR_BLACK   "\x1b[30m"
+#define ANSI_COLOR_RED     "\x1b[31m"
+#define ANSI_COLOR_GREEN   "\x1b[32m"
+#define ANSI_COLOR_YELLOW  "\x1b[33m"
+#define ANSI_COLOR_BLUE    "\x1b[34m"
+#define ANSI_COLOR_MAGENTA "\x1b[35m"
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_WHITE   "\x1b[37m"
 
 #define MAX_ARGV_LEN 128
 #define SHOW_PANIC true
 #define SHOW_WAIT_PANIC false
 
-// OFLAG for file open
 #define REDIR_IN_OFLAG O_RDONLY
 #define REDIR_OUT_OFLAG O_WRONLY | O_CREAT | O_TRUNC
 
-// fd
-int pipe_fd[2]; // r/w pipe file descriptor
-// fd for redirection is stored on cmd themselves
+int pipe_fd[2];
 
-// this buffer is used for C-style functions to get a string
 #define CHAR_BUF_SIZE 1024
 char char_buf[CHAR_BUF_SIZE];
 
-// record home directory for  and
-string home_dir;
-
-// command alias
 map<string, string> alias_map;
-// modify this function to add more aliases
+
 void init_alias() { alias_map.insert(pair<string, string>("ll", "ls -l")); }
 
-// history
 vector<string> cmd_history;
 
-// panic
 void panic(string hint, bool exit_ = false, int exit_code = 0) {
   if (SHOW_PANIC)
     cerr << "[!flickShell panic]: " << hint << endl;
@@ -132,16 +134,20 @@ vector<string> string_split_protect(const string& str, const string& delims) {
   return vec;
 }
 
-// ====================这段代码可以优化====================
 string string_split_last(const string& s, const string& delims) {
-  vector<string> split_res = string_split(s, delims);
-  return split_res.at(split_res.size() - 1);
+  int q;
+  if ((q = s.find_last_of(delims)) != string::npos) {
+    return s.substr(q + 1, s.length());
+  }
+  return s;
 }
 
-// ====================这段代码可以优化====================
 string string_split_first(const string& s, const string& delims) {
-  vector<string> split_res = string_split(s, delims);
-  return split_res.at(0);
+  int q;
+  if ((q = s.find_first_of(delims)) != string::npos) {
+    return s.substr(0, q);
+  }
+  return s;
 }
 
 string trim(const string& s) {
@@ -155,9 +161,17 @@ string trim(const string& s) {
   return s.substr(p, q - p + 1);
 }
 
+void front_history(int count, int key) {
+  panic(std::to_string(count));
+  panic(std::to_string(key));
+}
+
+string prompt;
 string read_line() {
+
   string line;
-  getline(cin, line);
+  if ((line = readline(prompt.c_str())).empty()) return line;
+  add_history(line.c_str());
   return line;
 }
 
@@ -165,18 +179,34 @@ string read_line() {
 // show the command prompt in front of each line
 // **example** [root@localhost tmp]>
 // ==========================
-void show_command_prompt() {
-  // get username
-  passwd* pwd = getpwuid(getuid());
-  string username(pwd->pw_name);
+uid_t uid = -1;
+passwd* pwd;
+string username;
+string hostname;
+string home_dir;
+void set_command_prompt() {
+  uid_t new_uid = getuid();
+
+  if (new_uid != uid) {
+    uid = new_uid;
+    pwd = getpwuid(uid);
+    username = (pwd->pw_name);
+    gethostname(char_buf, CHAR_BUF_SIZE);
+    hostname = char_buf;
+    // sometimes, hostname is like localhost.locald.xxx here, should split it
+    hostname = string_split_first(hostname, ".");
+
+    // consider home path (~)
+    if (username == "root")
+      home_dir = "/root"; // home for root
+    else
+      home_dir = "/home/" + username; // home for other user
+  }
+
   // get current working directory
   getcwd(char_buf, CHAR_BUF_SIZE);
   string cwd(char_buf);
-  // consider home path (~)
-  if (username == "root")
-    home_dir = "/root"; // home for root
-  else
-    home_dir = "/home/" + username; // home for other user
+
   if (cwd == home_dir)
     cwd = "~";
   else if (cwd != "/") {
@@ -184,13 +214,17 @@ void show_command_prompt() {
     // keep only the last level of directory
     cwd = string_split_last(cwd, "/");
   }
-  // get hostname
-  gethostname(char_buf, CHAR_BUF_SIZE);
-  string hostname(char_buf);
-  // sometimes, hostname is like localhost.locald.xxx here, should split it
-  hostname = string_split_first(hostname, ".");
+
+
   // output
-  cout << "[" << username << "@" << hostname << " " << cwd << "]> ";
+  string x = "[";
+  x.append(username);
+  x.push_back('@');
+  x.append(hostname);
+  x.push_back(' ');
+  x.append(cwd);
+  x.append("]>");
+  prompt = x;
 }
 
 // ==========================
@@ -343,12 +377,11 @@ int process_builtin_command(string line) {
   // 1 - cd
   if (line == "cd") {
     chdir(home_dir.c_str()); // single cd means cd ~
+    set_command_prompt();
     return 1;
-  } else if (line.substr(0, 2) == "cd") {
+  } else if (line.substr(0, 3) == "cd ") {
     // replace ~ into home_dir
-    // ====================这里可能判断不够严谨=====================
     string arg1 = string_split(line, WHITE_SPACE)[1];
-    // cdxxx ~/xx/xxx -> cd $home_dir/xx/xxx Changing exe func may make prob.
     if (arg1.find("~") == 0)
       line = "cd " + home_dir + arg1.substr(1);
     // change directory
@@ -356,8 +389,10 @@ int process_builtin_command(string line) {
     if (chdir_ret < 0) {
       panic("chdir failed");
       return -1;
-    } else
+    } else {
+      set_command_prompt();
       return 1; // successfully processed
+    }
   }
   // 2 - quit
   if (line == "quit") {
@@ -477,14 +512,17 @@ void run_cmd(cmd* cmd_) {
   }
 }
 
-// entry method of the shell
 int main() {
-  // system("stty erase ^H"); // fix ^H when using backspace on SSH // See Issue #1
-  init_alias(); // support command alias
+  rl_initialize();
+  using_history();
+  fflush(stdout);
+  rl_on_new_line();
+  rl_bind_key('\t', rl_complete);
+  init_alias();
   string line;
   int wait_status;
   while (true) {
-    show_command_prompt();
+    set_command_prompt();
     line = trim(read_line());
     cmd_history.push_back(line);
     // deal with builtin commands
