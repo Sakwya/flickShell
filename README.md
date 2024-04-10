@@ -30,6 +30,11 @@ cp flickShell /usr/local/bin/
 chsh -s /usr/local/bin/flickShell
 ```
 
+### ※ 注意 ※
+
+目前设为默认Shell可能会导致部分软件无法使用，实测无法打开vscode。  
+推测为没有实现job、alias等命令导致的。
+
 ## 常见问题
 
 ### 1.没有readline库。
