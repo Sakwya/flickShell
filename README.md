@@ -19,12 +19,30 @@ gcc flickShell.cpp -o -lstdc++ -lreadline
 cp flickShell /usr/local/bin/
 ```
 
+### 将flickShell配置为有效
+
+打开`/etc/shells`  
+在文件内加入`/usr/local/bin/flickShell`
+
 ### 设为默认Shell
 
 ```bash
 chsh -s /usr/local/bin/flickShell
 ```
 
+### ※ 注意 ※
+
+目前设为默认Shell可能会导致部分软件无法使用，实测无法打开vscode。  
+推测为没有实现job、alias等命令导致的。
+
+## 常见问题
+
+### 1.没有readline库。
+
+Debian/Ubuntu 系统：sudo apt-get install libreadline-dev  
+Fedora 系统：sudo dnf install readline-devel  
+CentOS/RHEL 系统：sudo yum install readline-devel  
+=======
 ## 常见问题
 
 ### 1. 没有readline库
@@ -87,7 +105,6 @@ sys/stat.h 是 C 语言中的头文件，用于文件状态的获取和操作。
 
 struct stat：文件状态的结构体，包含了文件的各种属性，如文件大小、权限、最后访问时间等。  
 S_IFMT、S_IFREG、S_IFDIR 等：用于判断文件类型的宏定义。  
-S_IRUSR、S_IWUSR、S_IXUSR 等：用于设置文件权限的宏定义。  
 
 ### sys/types.h
 
