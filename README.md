@@ -37,14 +37,6 @@ chsh -s /usr/local/bin/flickShell
 
 ## 常见问题
 
-### 1.没有readline库。
-
-Debian/Ubuntu 系统：sudo apt-get install libreadline-dev  
-Fedora 系统：sudo dnf install readline-devel  
-CentOS/RHEL 系统：sudo yum install readline-devel  
-=======
-## 常见问题
-
 ### 1. 没有readline库
 
 Debian/Ubuntu 系统：
