@@ -4,6 +4,20 @@
 > by z0gSh1u @ 2020-09  
 > Revised By Sakwya @ 2024-03  
 
+### 运行方法
+#### 编译
+```bash
+gcc flickShell.cpp -o -lstdc++ -lreadline
+```
+#### 移动
+```bash
+cp flickShell /usr/local/bin/
+```
+#### 设为默认Shell
+```bash
+chsh -s /usr/local/bin/flickShell
+```
+
 ### 常见问题
 #### 1.没有readline库。
 Debian/Ubuntu 系统：sudo apt-get install libreadline-dev  
