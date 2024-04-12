@@ -77,7 +77,6 @@ vector<string> string_split(const string& s, const string& delims) {
 }
 
 // this split function will protect string inside quote
-// ====================这段代码可以优化====================
 vector<string> string_split_protect(const string& str, const string& delims) {
   vector<string> vec;
   string tmp = "";
@@ -88,16 +87,16 @@ vector<string> string_split_protect(const string& str, const string& delims) {
     } else if (str[i] == '\"') {
       i++; // skip "
       while (str[i] != '\"' && i < str.length()) {
-        tmp += str[i];
+        tmp.push_back(str[i]);
         i++;
       }
       if (i == str.length())
         panic("unclosed quote");
-    } else
-      tmp += str[i];
+    } else {
+      tmp.push_back(str[i]);
+    }
   }
-  if (tmp.length() > 0)
-    vec.push_back(tmp);
+  if (tmp.length() > 0) vec.push_back(tmp);
   return vec;
 }
 
@@ -128,14 +127,8 @@ string trim(const string& s) {
   return s.substr(p, q - p + 1);
 }
 
-void front_history(int count, int key) {
-  panic(std::to_string(count));
-  panic(std::to_string(key));
-}
-
 string prompt;
 string read_line() {
-
   string line;
   if ((line = readline(prompt.c_str())).empty()) return line;
   add_history(line.c_str());
@@ -458,12 +451,13 @@ void run_cmd(cmd* cmd_) {
     redirect_cmd* rcmd = static_cast<redirect_cmd*>(cmd_);
     if (fork_wrap() == 0) {
       // i'm a child, let's satisfy the file being redirected to (or from)
-      // ====================重复判断，可以优化====================
-      rcmd->fd = open_wrap(rcmd->file.c_str(), rcmd->type == CMD_TYPE_REDIR_IN
-        ? REDIR_IN_OFLAG
-        : REDIR_OUT_OFLAG);
-      dup2_wrap(rcmd->fd, rcmd->type == CMD_TYPE_REDIR_IN ? fileno(stdin)
-        : fileno(stdout));
+      if (rcmd->type == CMD_TYPE_REDIR_IN){
+        rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_IN_OFLAG);
+        dup2_wrap(rcmd->fd, rcmd->type == fileno(stdin));
+      }else{
+        rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_OUT_OFLAG);
+        dup2_wrap(rcmd->fd, rcmd->type == fileno(stdout));
+      }
       run_cmd(rcmd->cmd_);
       close(rcmd->fd);
     }
