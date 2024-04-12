@@ -10,7 +10,7 @@
 ### 编译
 
 ```bash
-gcc flickShell.cpp -o -lstdc++ -lreadline
+gcc flickShell.cpp -o flickShell -lstdc++ -lreadline
 ```
 
 ### 移动
