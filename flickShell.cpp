@@ -51,7 +51,7 @@ vector<string> cmd_history;
 
 void panic(string hint, bool exit_ = false, int exit_code = 0) {
   if (SHOW_PANIC)
-    cerr << "[!flickShell panic]: " << hint << endl;
+    cerr << "[!flickShell]: " << hint << endl;
   if (exit_)
     exit(exit_code);
 }
@@ -334,44 +334,58 @@ cmd* parse(string line) {
 // deal with builtin command
 // returns: 0-nothing_done, 1-success, -1-failure
 int process_builtin_command(string line) {
+  vector<string> args = string_split(line, WHITE_SPACE);
   // 1 - cd
-  if (line == "cd") {
-    chdir(home_dir.c_str()); // single cd means cd ~
-    set_command_prompt();
-    return 1;
-  } else if (line.substr(0, 3) == "cd ") {
-    // replace ~ into home_dir
-    string arg1 = string_split(line, WHITE_SPACE)[1];
-    if (arg1.find("~") == 0)
-      line = "cd " + home_dir + arg1.substr(1);
-    // change directory
-    int chdir_ret = chdir(trim(line.substr(2)).c_str());
-    if (chdir_ret < 0) {
-      panic("chdir failed");
-      return -1;
-    } else {
+  if (args[0] == "cd") {
+    string route;
+    switch (args.size()) {
+    case 1:
+      chdir(home_dir.c_str()); // single cd means cd ~
       set_command_prompt();
-      return 1; // successfully processed
+      return 1;
+    case 2:
+      route = args[1];
+      if (route.find("~") == 0)
+        route = home_dir + route.substr(1);
+      // change directory
+      int chdir_ret = chdir(route.c_str());
+      if (chdir_ret < 0) {
+        panic("chdir failed");
+        return -1;
+      } else {
+        set_command_prompt();
+        return 1; // successfully processed
+      }
+      break;
+    default:
+      panic("too many arguments");
+      return -1;
     }
   }
-  // 2 - quit
-  if (line == "quit") {
-    cout << "Bye from flickShell." << endl;
-    exit(0);
+  // 2 - help
+  if (line == "help") {
+    cout << "" <<endl;
   }
-  // 3 - history
+  // 3 - alias
+
+  // 4 - history
   if (line == "history") {
     for (int i = cmd_history.size() - 1; i >= 0; i--)
       cout << "\t" << i << "\t" << cmd_history.at(i) << endl;
     return 1;
   }
+
+  // 5 - type
+
+  // 6 - exit
+  if (line == "exit") {
+    cout << "Bye from flickShell." << endl;
+    exit(0);
+  }
+  // 8 - jobs
+  // 9 - job_spec
+  // 10 - exec
   return 0; // nothing done
-  // ====================在这里增加功能？====================
-  // 0. help
-  // 1. alias
-  // 2. type
-  // 3. jobs
-  // 4. job_exec [&] 后台运行命令 NOT HERE
 }
 
 // run some cmd
@@ -451,10 +465,10 @@ void run_cmd(cmd* cmd_) {
     redirect_cmd* rcmd = static_cast<redirect_cmd*>(cmd_);
     if (fork_wrap() == 0) {
       // i'm a child, let's satisfy the file being redirected to (or from)
-      if (rcmd->type == CMD_TYPE_REDIR_IN){
+      if (rcmd->type == CMD_TYPE_REDIR_IN) {
         rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_IN_OFLAG);
         dup2_wrap(rcmd->fd, rcmd->type == fileno(stdin));
-      }else{
+      } else {
         rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_OUT_OFLAG);
         dup2_wrap(rcmd->fd, rcmd->type == fileno(stdout));
       }
