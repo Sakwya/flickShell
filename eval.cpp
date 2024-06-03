@@ -2,7 +2,6 @@
 
 
 string prompt;
-string home_dir;
 int pipe_fd[2];
 std::map<string, string> alias_map;
 
