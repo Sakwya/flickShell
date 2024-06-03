@@ -13,7 +13,7 @@ BUILD_DIR = build
 TARGET = $(BUILD_DIR)/flickShell
 
 # 源文件
-SRCS = flickShell.cpp
+SRCS = shell.cpp bashline.cpp eval.cpp line.cpp panic.cpp
 
 # 生成的对象文件
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
@@ -27,7 +27,7 @@ $(TARGET): $(OBJS)
 
 # 编译.cpp文件为.o文件
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -I. -c $< -o $@ $(CXXFLAGS)
 
 # 创建目标文件夹
 $(BUILD_DIR):
