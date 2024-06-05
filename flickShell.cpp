@@ -3,6 +3,7 @@
 #include <fcntl.h>
 #include <grp.h>
 #include <iostream>
+#include <fstream>
 #include <map>
 #include <pwd.h>
 #include <sstream>
@@ -31,6 +32,12 @@ const string SYMBOL = "|<>";
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_WHITE   "\x1b[37m"
 
+#define CMD_TYPE_NULL 0      // initial value
+#define CMD_TYPE_EXEC 1      // common exec command
+#define CMD_TYPE_PIPE 2      // pipe command
+#define CMD_TYPE_REDIR_IN 4  // redirect using <
+#define CMD_TYPE_REDIR_OUT 8 // redirect using >
+
 #define MAX_ARGV_LEN 128
 #define SHOW_PANIC true
 #define SHOW_WAIT_PANIC false
@@ -43,18 +50,40 @@ int pipe_fd[2];
 #define CHAR_BUF_SIZE 1024
 char char_buf[CHAR_BUF_SIZE];
 
+
+uid_t uid = -1;
+passwd* pwd;
+string username;
+string hostname;
+string home_dir;
+
 map<string, string> alias_map;
-
-void init_alias() { alias_map.insert(pair<string, string>("ll", "ls -l")); }
-
-vector<string> cmd_history;
-
+map<string, string> help_map;
 void panic(string hint, bool exit_ = false, int exit_code = 0) {
   if (SHOW_PANIC)
-    cerr << "[!flickShell panic]: " << hint << endl;
+    cerr << "[!flickShell]: " << hint << endl;
   if (exit_)
     exit(exit_code);
 }
+
+void init_shell() {
+  string filePath = home_dir + "/.flickshrc";
+  ifstream usrConfig(filePath);
+  if (!usrConfig.good()) {
+    usrConfig.close();
+    ofstream newConfig(filePath, std::ios::app);
+
+    if (!newConfig.is_open()) {
+      panic("Failed to open file: "+filePath);
+      exit(1);
+    }else{
+      newConfig << "# ./flickshrc"<<endl;
+    }
+
+  }
+}
+void init_alias() { alias_map.insert({ {"ll", "ls -l"} }); }
+void init_help() { help_map.insert({ {"cd","cd: cd [-L|[-P [-e]] [-@]] [dir]\n    Change the shell working directory.\n    Change the current directory to DIR.  The default DIR is the value of the\n    HOME shell variable."} }); }
 
 // ==========================
 // string utilities
@@ -77,7 +106,6 @@ vector<string> string_split(const string& s, const string& delims) {
 }
 
 // this split function will protect string inside quote
-// ====================这段代码可以优化====================
 vector<string> string_split_protect(const string& str, const string& delims) {
   vector<string> vec;
   string tmp = "";
@@ -88,16 +116,16 @@ vector<string> string_split_protect(const string& str, const string& delims) {
     } else if (str[i] == '\"') {
       i++; // skip "
       while (str[i] != '\"' && i < str.length()) {
-        tmp += str[i];
+        tmp.push_back(str[i]);
         i++;
       }
       if (i == str.length())
         panic("unclosed quote");
-    } else
-      tmp += str[i];
+    } else {
+      tmp.push_back(str[i]);
+    }
   }
-  if (tmp.length() > 0)
-    vec.push_back(tmp);
+  if (tmp.length() > 0) vec.push_back(tmp);
   return vec;
 }
 
@@ -128,32 +156,14 @@ string trim(const string& s) {
   return s.substr(p, q - p + 1);
 }
 
-void front_history(int count, int key) {
-  panic(std::to_string(count));
-  panic(std::to_string(key));
-}
-
 string prompt;
-string read_line() {
-
-  string line;
-  if ((line = readline(prompt.c_str())).empty()) return line;
-  add_history(line.c_str());
-  return line;
-}
 
 // ==========================
 // show the command prompt in front of each line
 // **example** [root@localhost tmp]>
 // ==========================
-uid_t uid = -1;
-passwd* pwd;
-string username;
-string hostname;
-string home_dir;
 void set_command_prompt() {
   uid_t new_uid = getuid();
-
   if (new_uid != uid) {
     uid = new_uid;
     pwd = getpwuid(uid);
@@ -166,8 +176,10 @@ void set_command_prompt() {
     // consider home path (~)
     if (username == "root")
       home_dir = "/root"; // home for root
-    else
-      home_dir = "/home/" + username; // home for other user
+    else {
+      home_dir = "/home/";
+      home_dir.append(username); // home for other user
+    }
   }
 
   // get current working directory
@@ -182,6 +194,7 @@ void set_command_prompt() {
     cwd = string_split_last(cwd, "/");
   }
 
+  //prompt = getenv("P1");
 
   // output
   string x = "[";
@@ -242,11 +255,6 @@ void check_wait_status(int& wait_status) {
 // ==========================
 // command line parsing
 // ==========================
-#define CMD_TYPE_NULL 0      // initial value
-#define CMD_TYPE_EXEC 1      // common exec command
-#define CMD_TYPE_PIPE 2      // pipe command
-#define CMD_TYPE_REDIR_IN 4  // redirect using <
-#define CMD_TYPE_REDIR_OUT 8 // redirect using >
 
 // base class for any cmd
 class cmd {
@@ -341,44 +349,110 @@ cmd* parse(string line) {
 // deal with builtin command
 // returns: 0-nothing_done, 1-success, -1-failure
 int process_builtin_command(string line) {
+  vector<string> args = string_split(line, WHITE_SPACE);
   // 1 - cd
-  if (line == "cd") {
-    chdir(home_dir.c_str()); // single cd means cd ~
-    set_command_prompt();
-    return 1;
-  } else if (line.substr(0, 3) == "cd ") {
-    // replace ~ into home_dir
-    string arg1 = string_split(line, WHITE_SPACE)[1];
-    if (arg1.find("~") == 0)
-      line = "cd " + home_dir + arg1.substr(1);
-    // change directory
-    int chdir_ret = chdir(trim(line.substr(2)).c_str());
-    if (chdir_ret < 0) {
-      panic("chdir failed");
-      return -1;
-    } else {
+  if (args[0] == "cd") {
+    string route;
+    int chdir_ret;
+    switch (args.size()) {
+    case 1:
+      chdir(home_dir.c_str()); // single cd means cd ~
+      set_command_prompt();
+      return 1;
+    case 2:
+      route = args[1];
+      if (route.find("~") == 0) {
+        route = home_dir + route.substr(1);
+      }
+      // change directory
+      chdir_ret = chdir(route.c_str());
+      if (chdir_ret < 0) {
+        panic("chdir failed");
+        return -1;
+      }
       set_command_prompt();
       return 1; // successfully processed
+    default:
+      panic("too many arguments");
+      return -1;
     }
   }
-  // 2 - quit
-  if (line == "quit") {
-    cout << "Bye from flickShell." << endl;
-    exit(0);
+  // 2 - help
+  if (args[0] == "help") {
+    string key;
+    switch (args.size()) {
+    case 1:
+      cout << "" << endl;
+      return 1;
+    case 2:
+      if (args[1].size() > 256) {
+        panic("input out of limit");
+        return -1;
+      }
+      try {
+        // 尝试直接访问元素
+        key = args[1];
+        std::string value = help_map.at(key);
+        std::cout << value << std::endl;
+      } catch (const std::out_of_range& e) {
+        std::snprintf(char_buf, CHAR_BUF_SIZE, "no help topics match `%s'.  Try `help help' or `man -k %s' or `info %s'.", key.c_str(), key.c_str(), key.c_str());
+        panic(char_buf);
+      }
+      return 1;
+      //break;
+    default:
+      panic("too many arguments");
+      return -1;
+    }
   }
-  // 3 - history
-  if (line == "history") {
-    for (int i = cmd_history.size() - 1; i >= 0; i--)
-      cout << "\t" << i << "\t" << cmd_history.at(i) << endl;
+  // 3 - alias
+  // 3.5 - unalias
+  // 4 - history
+  if (args[0] == "history") {
+    if (args.size() != 1) {
+      panic("too many arguments");
+      return -1;
+    }
+    for (int i = history_base; i < history_length; ++i) {
+      // 获取第i条历史记录
+      HIST_ENTRY* history_entry = history_get(i);
+
+      // 输出历史记录
+      if (history_entry != NULL) {
+        printf("%5d  %s\n", i + 1, history_entry->line);
+      }
+    }
     return 1;
   }
+
+  // 5 - type
+
+  // 6 - exit
+  if (args[0] == "exit") {
+    switch (args.size()) {
+    case 1:
+      cout << "Bye from flickShell." << endl;
+      exit(0);
+      break;
+    case 2:
+      try {
+        int num = stoi(args[1]);
+        exit(num);
+      } catch (const invalid_argument& e) {
+        panic("Invalid argument");
+        return -1;
+      }
+      break;
+    default:
+      panic("too many arguments");
+      return -1;
+    }
+  }
+  // 下面几个命令没有要求实现
+  // 7 - jobs
+  // 8 - job_spec
+  // 9 - exec
   return 0; // nothing done
-  // ====================在这里增加功能？====================
-  // 0. help
-  // 1. alias
-  // 2. type
-  // 3. jobs
-  // 4. job_exec [&] 后台运行命令 NOT HERE
 }
 
 // run some cmd
@@ -458,12 +532,13 @@ void run_cmd(cmd* cmd_) {
     redirect_cmd* rcmd = static_cast<redirect_cmd*>(cmd_);
     if (fork_wrap() == 0) {
       // i'm a child, let's satisfy the file being redirected to (or from)
-      // ====================重复判断，可以优化====================
-      rcmd->fd = open_wrap(rcmd->file.c_str(), rcmd->type == CMD_TYPE_REDIR_IN
-        ? REDIR_IN_OFLAG
-        : REDIR_OUT_OFLAG);
-      dup2_wrap(rcmd->fd, rcmd->type == CMD_TYPE_REDIR_IN ? fileno(stdin)
-        : fileno(stdout));
+      if (rcmd->type == CMD_TYPE_REDIR_IN) {
+        rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_IN_OFLAG);
+        dup2_wrap(rcmd->fd, rcmd->type == fileno(stdin));
+      } else {
+        rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_OUT_OFLAG);
+        dup2_wrap(rcmd->fd, rcmd->type == fileno(stdout));
+      }
       run_cmd(rcmd->cmd_);
       close(rcmd->fd);
     }
@@ -485,13 +560,18 @@ int main() {
   fflush(stdout);
   rl_on_new_line();
   rl_bind_key('\t', rl_complete);
+
+  set_command_prompt();
+  init_shell();
   init_alias();
+  init_help();
+
   string line;
   int wait_status;
   while (true) {
-    set_command_prompt();
-    line = trim(read_line());
-    cmd_history.push_back(line);
+    line = trim(readline(prompt.c_str()));
+    if (line.empty())continue;
+    add_history(line.c_str());
     // deal with builtin commands
     if (process_builtin_command(line) > 0)
       continue;
