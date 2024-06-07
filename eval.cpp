@@ -1,14 +1,20 @@
-#include<eval.h>
-
+#include "eval.h"
+#include "builtin_cd.h"
+#include "builtin_help.h"
+#include "builtin_history.h"
+#include "builtin_exit.h"
+#include <map>
+#include <string>
+#include <vector>
 
 string prompt;
 int pipe_fd[2];
-std::map<string, string> alias_map;
+std::map<std::string, std::string> alias_map;
 
+void init_alias() { 
+    alias_map.insert({ {"ll", "ls -l"} }); 
+}
 
-
-
-void init_alias() { alias_map.insert({ {"ll", "ls -l"} }); }
 // ==========================
 // proxy functions
 // ==========================
@@ -148,70 +154,20 @@ cmd* parse(string line) {
         return cur_cmd;
 }
 
-std::map<string, string> help_map;
-void init_help() { help_map.insert({ {"cd","cd: cd [-L|[-P [-e]] [-@]] [dir]\n    Change the shell working directory.\n    Change the current directory to DIR.  The default DIR is the value of the\n    HOME shell variable."} }); }
-
-
 
 // deal with builtin command
 // returns: 0-nothing_done, 1-success, -1-failure
-int process_builtin_command(string line) {
-    vector<string> args = string_split(line, WHITE_SPACE);
+int process_builtin_command(const std::string& line) {
+    std::vector<std::string> args = string_split(line, WHITE_SPACE);
     // 1 - cd
     if (args[0] == "cd") {
-        string route;
-        int chdir_ret;
-        switch (args.size()) {
-        case 1:
-            chdir(home_dir.c_str()); // single cd means cd ~
-            prompt = get_command_prompt();
-            return 1;
-        case 2:
-            route = args[1];
-            if (route.find("~") == 0) {
-                route = home_dir + route.substr(1);
-            }
-            // change directory
-            chdir_ret = chdir(route.c_str());
-            if (chdir_ret < 0) {
-                panic("chdir failed");
-                return -1;
-            }
-            prompt = get_command_prompt();
-            return 1; // successfully processed
-        default:
-            panic("too many arguments");
-            return -1;
-        }
+        change_directory(args);
+        return 1; // successfully processed
     }
     // 2 - help
     if (args[0] == "help") {
-        string key;
-        switch (args.size()) {
-        case 1:
-            //   cout << "" << endl;
-            return 1;
-        case 2:
-            if (args[1].size() > 256) {
-                panic("input out of limit");
-                return -1;
-            }
-            try {
-                // 尝试直接访问元素
-                key = args[1];
-                string value = help_map.at(key);
-                std::cout << value << endl;
-            } catch (const std::out_of_range& e) {
-                char char_buf[CHAR_BUF_SIZE];
-                std::snprintf(char_buf, CHAR_BUF_SIZE, "no help topics match `%s'.  Try `help help' or `man -k %s' or `info %s'.", key.c_str(), key.c_str(), key.c_str());
-                panic(char_buf);
-            }
-            return 1;
-            //break;
-        default:
-            panic("too many arguments");
-            return -1;
-        }
+        display_help(args);
+        return 1;
     }
     // 3 - alias
     // 3.5 - unalias
@@ -221,15 +177,7 @@ int process_builtin_command(string line) {
             panic("too many arguments");
             return -1;
         }
-        for (int i = history_base; i < history_length; ++i) {
-            // 获取第i条历史记录
-            HIST_ENTRY* history_entry = history_get(i);
-
-            // 输出历史记录
-            if (history_entry != NULL) {
-                printf("%5d  %s\n", i + 1, history_entry->line);
-            }
-        }
+        show_history();
         return 1;
     }
 
@@ -237,24 +185,8 @@ int process_builtin_command(string line) {
 
     // 6 - exit
     if (args[0] == "exit") {
-        switch (args.size()) {
-        case 1:
-            std::cout << "Bye from flickShell." << endl;
-            exit(0);
-            break;
-        case 2:
-            try {
-                int num = stoi(args[1]);
-                exit(num);
-            } catch (const std::invalid_argument& e) {
-                panic("Invalid argument");
-                return -1;
-            }
-            break;
-        default:
-            panic("too many arguments");
-            return -1;
-        }
+        exit_shell(args);
+        return 1;
     }
     // 下面几个命令没有要求实现
     // 7 - jobs
