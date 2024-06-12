@@ -24,7 +24,9 @@ extern void reader_loop();
 #include <iostream>
 #include <sstream>
 #include <string>
+
 #include <vector>
+
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <stdexcept>

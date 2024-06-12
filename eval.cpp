@@ -154,7 +154,6 @@ cmd* parse(string line) {
         return cur_cmd;
 }
 
-
 // deal with builtin command
 // returns: 0-nothing_done, 1-success, -1-failure
 int process_builtin_command(const std::string& line) {
@@ -178,13 +177,7 @@ int process_builtin_command(const std::string& line) {
             return -1;
         }
         show_history();
-        return 1;
-    }
 
-    // 5 - type
-
-    // 6 - exit
-    if (args[0] == "exit") {
         exit_shell(args);
         return 1;
     }
