@@ -1,4 +1,4 @@
-#include "builtin_cd.h"
+#include "cd.h"
 #include "eval.h"
 #include <unistd.h>
 #include <string>
