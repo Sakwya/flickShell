@@ -13,7 +13,7 @@ BUILD_DIR = build
 TARGET = $(BUILD_DIR)/flickShell
 
 # 源文件
-SRCS = shell.cpp bashline.cpp eval.cpp line.cpp panic.cpp
+SRCS = shell.cpp bashline.cpp eval.cpp line.cpp panic.cpp builtin_cd.cpp builtin_help.cpp builtin_history.cpp builtin_exit.cpp
 
 # 生成的对象文件
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
@@ -38,3 +38,4 @@ clean:
 	rm -rf $(BUILD_DIR)
 
 .PHONY: all clean
+
