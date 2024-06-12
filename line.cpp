@@ -3,6 +3,7 @@
 #include <config.h>
 
 
+
 bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != -1; }
 
 bool is_symbol(char ch) { return SYMBOL.find(ch) != -1; }

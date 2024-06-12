@@ -1,2 +1,3 @@
 #include <global.h>
-#include <string>
+std::string home_dir;
+std::string prompt;

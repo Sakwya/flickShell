@@ -14,8 +14,6 @@
 #define ANSI_COLOR_CYAN    "\x1b[36m"
 #define ANSI_COLOR_WHITE   "\x1b[37m"
 
-#define WHITE_SPACE  " \t\r\n"
-#define SYMBOL  "|<>"
 
 
 #define CMD_TYPE_NULL 0      // initial value

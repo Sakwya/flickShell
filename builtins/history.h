@@ -1,1 +1,1 @@
-void show_history();
+extern void show_history();

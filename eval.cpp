@@ -6,7 +6,8 @@
 #include <sys/wait.h> 
 #include <cstring> //strcpy
 #include <unistd.h>
-// #include <fcntl.h>
+#include <fcntl.h>
+#include <global.h>
 // #include <map>
 // #include <readline/readline.h>
 // #include <readline/history.h>
@@ -29,13 +30,12 @@
 
 using std::string;
 using std::vector;
-string prompt;
 int pipe_fd[2];
-std::map<std::string, std::string> alias_map;
+// std::map<std::string, std::string> alias_map;
 
-void init_alias() {
-    alias_map.insert({ {"ll", "ls -l"} });
-}
+// void init_alias() {
+//     alias_map.insert({ {"ll", "ls -l"} });
+// }
 
 // ==========================
 // proxy functions
@@ -184,6 +184,7 @@ int process_builtin_command(const std::string& line) {
     // 1 - cd
     if (args[0] == "cd") {
         change_directory(args);
+        prompt = get_command_prompt();
         return 1; // successfully processed
     }
     // 2 - help
@@ -227,15 +228,15 @@ void run_cmd(cmd* cmd_) {
     {
         exec_cmd* ecmd = static_cast<exec_cmd*>(cmd_);
         // process alias
-        if (alias_map.count(ecmd->argv[0]) != 0) {
-            vector<string> arg0_replace =
-                string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
-            ecmd->argv.erase(ecmd->argv.begin());
-            for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
-                it < arg0_replace.rend(); it++) {
-                ecmd->argv.insert(ecmd->argv.begin(), (*it));
-            }
-        }
+        // if (alias_map.count(ecmd->argv[0]) != 0) {
+        //     vector<string> arg0_replace =
+        //         string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
+        //     ecmd->argv.erase(ecmd->argv.begin());
+        //     for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
+        //         it < arg0_replace.rend(); it++) {
+        //         ecmd->argv.insert(ecmd->argv.begin(), (*it));
+        //     }
+        // }
         // prepare vector<string> for execvp
         vector<char*> argv_c_str;
         for (int i = 0; i < ecmd->argv.size(); i++) {
@@ -243,7 +244,6 @@ void run_cmd(cmd* cmd_) {
             if (arg_trim.length() > 0) { // skip blank string
                 char* tmp = new char[MAX_ARGV_LEN];
                 strcpy(tmp, arg_trim.c_str());
-                string tmp = arg_trim.c_str();
                 argv_c_str.push_back(tmp);
             }
         }

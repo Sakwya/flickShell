@@ -1,6 +1,3 @@
-#include "history.h"
-#include "eval.h"  // 包含eval.h以获取panic函数的声明
-#include <iostream>
 #include <readline/history.h>
 
 void show_history() {
