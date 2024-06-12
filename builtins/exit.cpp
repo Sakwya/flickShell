@@ -1,7 +1,6 @@
-#include "exit.h"
+#include <builtins/exit.h>
 #include <iostream>
-#include <cstdlib>
-#include <eval.h>
+#include <panic.h>
 
 void exit_shell(const std::vector<std::string>& args) {
     switch (args.size()) {

@@ -1,4 +1,3 @@
-#include <vector>
 #include <string>
-
-void change_directory(const std::vector<std::string>& args);
+#include <vector>
+extern void change_directory(const std::vector<std::string>& args);

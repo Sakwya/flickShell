@@ -1,20 +1,41 @@
-#include "eval.h"
-#include "builtins/cd.h"
-#include "builtins/help.h"
-#include "builtins/history.h"
-#include "builtins/exit.h"
-#include "builtins/type.h"
-#include <map>
-#include <string>
-#include <vector>
+#include <eval.h>
+#include <panic.h>
+#include <config.h>
+#include <panic.h>
+#include <line.h> //包含了string 和 vector
+#include <sys/wait.h> 
+#include <cstring> //strcpy
+#include <unistd.h>
+#include <fcntl.h>
+#include <global.h>
+// #include <map>
+// #include <readline/readline.h>
+// #include <readline/history.h>
+// #include <cstdlib>
+// #include <grp.h>
+// #include <iostream>
+// #include <sstream>
+// #include <vector>
+// #include <sys/stat.h>
+// #include <sys/types.h>
+// #include <stdexcept>
 
-string prompt;
+
+#include <builtins/cd.h>
+#include <builtins/help.h>
+#include <builtins/history.h>
+#include <builtins/exit.h>
+#include <builtins/type.h>
+#include <bashline.h>
+
+using std::string;
+using std::vector;
 int pipe_fd[2];
-std::map<std::string, std::string> alias_map;
+// std::map<std::string, std::string> alias_map;
 
-void init_alias() { 
-    alias_map.insert({ {"ll", "ls -l"} }); 
-}
+// void init_alias() {
+//     alias_map.insert({ {"ll", "ls -l"} });
+// }
 
 // ==========================
 // proxy functions
@@ -163,6 +184,7 @@ int process_builtin_command(const std::string& line) {
     // 1 - cd
     if (args[0] == "cd") {
         change_directory(args);
+        prompt = get_command_prompt();
         return 1; // successfully processed
     }
     // 2 - help
@@ -206,15 +228,15 @@ void run_cmd(cmd* cmd_) {
     {
         exec_cmd* ecmd = static_cast<exec_cmd*>(cmd_);
         // process alias
-        if (alias_map.count(ecmd->argv[0]) != 0) {
-            vector<string> arg0_replace =
-                string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
-            ecmd->argv.erase(ecmd->argv.begin());
-            for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
-                it < arg0_replace.rend(); it++) {
-                ecmd->argv.insert(ecmd->argv.begin(), (*it));
-            }
-        }
+        // if (alias_map.count(ecmd->argv[0]) != 0) {
+        //     vector<string> arg0_replace =
+        //         string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
+        //     ecmd->argv.erase(ecmd->argv.begin());
+        //     for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
+        //         it < arg0_replace.rend(); it++) {
+        //         ecmd->argv.insert(ecmd->argv.begin(), (*it));
+        //     }
+        // }
         // prepare vector<string> for execvp
         vector<char*> argv_c_str;
         for (int i = 0; i < ecmd->argv.size(); i++) {
@@ -302,9 +324,8 @@ void reader_loop() {
     string line;
     int wait_status;
     while (true) {
-        line = trim(readline(prompt.c_str()));
+        line = trim(read_line());
         if (line.empty())continue;
-        add_history(line.c_str());
         // deal with builtin commands
         if (process_builtin_command(line) > 0)
             continue;

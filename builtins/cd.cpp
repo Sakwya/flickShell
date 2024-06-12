@@ -1,10 +1,7 @@
-#include "cd.h"
-#include "eval.h"
+#include <builtins/cd.h>
 #include <unistd.h>
-#include <string>
-
-extern std::string home_dir;
-extern std::string prompt;
+#include <global.h>
+#include <panic.h>
 
 void change_directory(const std::vector<std::string>& args) {
     std::string route;
@@ -12,7 +9,6 @@ void change_directory(const std::vector<std::string>& args) {
     switch (args.size()) {
     case 1:
         chdir(home_dir.c_str()); // single cd means cd \~
-        prompt = get_command_prompt();
         break;
     case 2:
         route = args[1];
@@ -24,7 +20,6 @@ void change_directory(const std::vector<std::string>& args) {
         if (chdir_ret < 0) {
             panic("chdir failed");
         }
-        prompt = get_command_prompt();
         break;
     default:
         panic("too many arguments");
