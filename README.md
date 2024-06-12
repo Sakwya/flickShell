@@ -9,31 +9,38 @@
 
 ### 编译
 
+使用Makefile
+
 ```bash
-gcc flickShell.cpp -o flickShell -lstdc++ -lreadline
+make
 ```
 
-### 移动
+### 运行
 
 ```bash
-cp flickShell /usr/local/bin/
+./build/flickShell
 ```
 
 ### 将flickShell配置为有效
 
 打开`/etc/shells`  
-在文件内加入`/usr/local/bin/flickShell`
+在文件内加入`{{path to flickShell}}`
 
 ### 设为默认Shell
 
 ```bash
-chsh -s /usr/local/bin/flickShell
+chsh -s {{path to flickShell}}
 ```
 
 ### ※ 注意 ※
 
 目前设为默认Shell可能会导致部分软件无法使用，实测无法打开vscode。  
-推测为没有实现job、alias等命令导致的。
+推测为没有实现一些内建指令导致的。
+
+## Shell运行流程
+
+shell <- readline, exal, bashline
+exal <- buildins, bashline
 
 ## 常见问题
 

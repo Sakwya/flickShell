@@ -1,5 +1,12 @@
 #include <bashline.h>
-
+#include <line.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <fstream>
+#include <global.h>
+#include <config.h>
+#include <readline/readline.h>
+#include <readline/history.h>
 // ==========================
 // show the command prompt in front of each line
 // **example** [root@localhost tmp]>
@@ -9,27 +16,8 @@ uid_t uid = -1;
 passwd* pwd;
 string username;
 string hostname;
-string home_dir;
+
 char char_buf[CHAR_BUF_SIZE];
-string get_command_prompt();
-
-void init_shell() {
-  get_command_prompt();
-  string filePath = home_dir + "/.flickshrc";
-  panic(filePath);
-  std::ifstream usrConfig(filePath);
-  if (!usrConfig.good()) {
-    usrConfig.close();
-    std::ofstream newConfig(filePath, std::ios::app);
-
-    if (!newConfig.is_open()) {
-      panic("Failed to open file: "+filePath);
-      exit(1);
-    }else{
-      newConfig << "# ./flickshrc"<<endl;
-    }
-  }
-}
 
 string get_command_prompt() {
   uid_t new_uid = getuid();
@@ -66,12 +54,22 @@ string get_command_prompt() {
   //prompt = getenv("P1");
 
   // output
-  string prompt = "[";
-  prompt.append(username);
-  prompt.push_back('@');
-  prompt.append(hostname);
-  prompt.push_back(' ');
-  prompt.append(cwd);
-  prompt.append("]>");
-  return prompt;
+  string _prompt = "[";
+  _prompt.append(username);
+  _prompt.push_back('@');
+  _prompt.append(hostname);
+  _prompt.push_back(' ');
+  _prompt.append(cwd);
+  _prompt.append("]>");
+  return _prompt;
+}
+
+string read_line(){
+  string line = trim(readline(prompt.c_str()));
+  while (line.empty())
+  {
+    line = trim(readline(prompt.c_str()));
+  }
+  add_history(line.c_str());
+  return line;
 }

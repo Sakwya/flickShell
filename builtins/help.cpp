@@ -1,11 +1,9 @@
-#include "help.h"
+#include <builtins/help.h>
 #include <iostream>
 #include <stdexcept>
 #include <cstdio>
-#include <eval.h>
+#include <panic.h>
 #include <map>
-#include <vector>
-#include <string>
 
 std::map<std::string, std::string> help_map;
 

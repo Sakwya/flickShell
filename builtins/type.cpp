@@ -1,8 +1,6 @@
-#include "type.h"
-#include "eval.h"  // 包含eval.h以获取panic函数的声明
+#include <builtins/type.h>
+#include <panic.h>
 #include <iostream>
-#include <string>
-#include <vector>
 #include <sys/stat.h>
 
 void show_type(const std::vector<std::string>& args) {
