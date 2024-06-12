@@ -183,7 +183,7 @@ int process_builtin_command(const std::string& line) {
     }
 
     // 5 - type
-    if (args[0] == "tyoe") {
+    if (args[0] == "type") {
         show_type(args);
         return 1;
     }
