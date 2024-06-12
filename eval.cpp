@@ -1,9 +1,9 @@
 #include "eval.h"
-#include "builtin_cd.h"
-#include "builtin_help.h"
-#include "builtin_history.h"
-#include "builtin_exit.h"
-#include "builtin_type.h"
+#include "builtins/cd.h"
+#include "builtins/help.h"
+#include "builtins/history.h"
+#include "builtins/exit.h"
+#include "builtins/type.h"
 #include <map>
 #include <string>
 #include <vector>
