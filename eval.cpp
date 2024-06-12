@@ -1,8 +1,14 @@
 #include "eval.h"
-#include "builtins/cd.h"
-#include "builtins/help.h"
-#include "builtins/exit.h"
-#include "builtins/history.h"
+
+#include "builtin_cd.h"
+#include "builtin_help.h"
+#include "builtin_history.h"
+#include "builtin_exit.h"
+#include "builtin_type.h"
+#include <map>
+#include <string>
+#include <vector>
+
 
 std::map<std::string, std::string> alias_map;
 std::map<std::string, std::string> help_map;
@@ -17,10 +23,21 @@ void init_help() {
     help_map.insert({ {"cd", "cd: cd [-L|[-P [-e]] [-@]] [dir]\n    Change the shell working directory.\n    Change the current directory to DIR.  The default DIR is the value of the\n    HOME shell variable."} });
 }
 
-int process_builtin_command(std::string line) {
-    std::vector<std::string> args = string_split(line, " ");
-    if (args.empty()) {
-        return 0;
+
+// deal with builtin command
+// returns: 0-nothing_done, 1-success, -1-failure
+int process_builtin_command(const std::string& line) {
+    std::vector<std::string> args = string_split(line, WHITE_SPACE);
+    // 1 - cd
+    if (args[0] == "cd") {
+        change_directory(args);
+        return 1; // successfully processed
+    }
+    // 2 - help
+    if (args[0] == "help") {
+        display_help(args);
+        return 1;
+
     }
     try {
         if (args[0] == "cd") {
@@ -32,9 +49,21 @@ int process_builtin_command(std::string line) {
         } else if (args[0] == "history") {
             return history_command(args);
         }
-    } catch (const std::runtime_error& e) {
-        std::cerr << e.what() << std::endl;
-        return -1;
+
+        show_history();
+        return 1;
+    }
+
+    // 5 - type
+    if (args[0] == "tyoe") {
+        show_type(args);
+        return 1;
+    }
+    // 6 - exit
+    if (args[0] == "exit") {
+        exit_shell(args);
+        return 1;
+
     }
     return 0;
 }

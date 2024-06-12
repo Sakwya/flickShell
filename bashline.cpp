@@ -11,9 +11,12 @@ string username;
 string hostname;
 string home_dir;
 char char_buf[CHAR_BUF_SIZE];
+string get_command_prompt();
 
 void init_shell() {
+  get_command_prompt();
   string filePath = home_dir + "/.flickshrc";
+  panic(filePath);
   std::ifstream usrConfig(filePath);
   if (!usrConfig.good()) {
     usrConfig.close();
