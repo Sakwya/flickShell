@@ -1,4 +1,7 @@
-#include<line.h>
+#include <line.h>
+#include <panic.h>
+#include <config.h>
+
 
 bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != -1; }
 

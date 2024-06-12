@@ -1,19 +1,40 @@
-#include "eval.h"
-#include "builtins/cd.h"
-#include "builtins/help.h"
-#include "builtins/history.h"
-#include "builtins/exit.h"
-#include "builtins/type.h"
-#include <map>
-#include <string>
-#include <vector>
+#include <eval.h>
+#include <panic.h>
+#include <config.h>
+#include <panic.h>
+#include <line.h> //包含了string 和 vector
+#include <sys/wait.h> 
+#include <cstring> //strcpy
+#include <unistd.h>
+// #include <fcntl.h>
+// #include <map>
+// #include <readline/readline.h>
+// #include <readline/history.h>
+// #include <cstdlib>
+// #include <grp.h>
+// #include <iostream>
+// #include <sstream>
+// #include <vector>
+// #include <sys/stat.h>
+// #include <sys/types.h>
+// #include <stdexcept>
 
+
+#include <builtins/cd.h>
+#include <builtins/help.h>
+#include <builtins/history.h>
+#include <builtins/exit.h>
+#include <builtins/type.h>
+#include <bashline.h>
+
+using std::string;
+using std::vector;
 string prompt;
 int pipe_fd[2];
 std::map<std::string, std::string> alias_map;
 
-void init_alias() { 
-    alias_map.insert({ {"ll", "ls -l"} }); 
+void init_alias() {
+    alias_map.insert({ {"ll", "ls -l"} });
 }
 
 // ==========================
@@ -222,6 +243,7 @@ void run_cmd(cmd* cmd_) {
             if (arg_trim.length() > 0) { // skip blank string
                 char* tmp = new char[MAX_ARGV_LEN];
                 strcpy(tmp, arg_trim.c_str());
+                string tmp = arg_trim.c_str();
                 argv_c_str.push_back(tmp);
             }
         }
@@ -302,9 +324,8 @@ void reader_loop() {
     string line;
     int wait_status;
     while (true) {
-        line = trim(readline(prompt.c_str()));
+        line = trim(read_line());
         if (line.empty())continue;
-        add_history(line.c_str());
         // deal with builtin commands
         if (process_builtin_command(line) > 0)
             continue;
