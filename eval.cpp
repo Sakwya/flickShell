@@ -3,6 +3,7 @@
 #include "builtin_help.h"
 #include "builtin_history.h"
 #include "builtin_exit.h"
+#include "builtin_type.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -182,7 +183,10 @@ int process_builtin_command(const std::string& line) {
     }
 
     // 5 - type
-
+    if (args[0] == "type") {
+        show_type(args);
+        return 1;
+    }
     // 6 - exit
     if (args[0] == "exit") {
         exit_shell(args);
