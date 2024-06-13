@@ -1,13 +1,11 @@
-#include "type.h"
-#include "eval.h"
+#include <builtins/type.h>
+#include <builtins/builtins.h>
+#include <panic.h>
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <vector>
 #include <sys/stat.h>
 #include <unistd.h>
 #include <limits.h>
-#include <cerrno>
 #include <map>
 
 // 获取文件的绝对路径
@@ -20,22 +18,6 @@ std::string get_absolute_path(const std::string& path) {
     }
 }
 
-// 内置命令列表
-const std::map<std::string, bool> builtin_commands = {
-    {"cd", true},
-    {"exit", true},
-    {"pwd", true},
-    {"echo", true},
-    {"env", true},
-    {"export", true},
-    {"unset", true},
-    {"alias", true},
-    {"unalias", true},
-    {"history", true},
-    {"help", true},
-    {"exec", true},
-    {"jobs", true}
-};
 
 // 别名列表
 const std::map<std::string, std::string> aliases = {
@@ -56,7 +38,7 @@ enum CommandType {
 
 CommandType is_builtin_or_alias(const std::string& name) {
     // 检查是否是内置命令
-    if (builtin_commands.find(name) != builtin_commands.end()) {
+    if (is_builtin(name)) {
         return BUILTIN;
     }
     // 检查是否是别名
@@ -71,6 +53,7 @@ void show_type(const std::vector<std::string>& args) {
     // 检查参数数量
     if (args.size() != 2) {
         panic("invalid number of arguments");
+        return;
     }
     // 获取要显示类型的命令或文件名
     const std::string& name = args[1];
@@ -88,11 +71,13 @@ void show_type(const std::vector<std::string>& args) {
             return;
         case NOT_FOUND:
             // 尝试找到命令的路径
-            command_path = "../flichShell/builtins/" + name;
-            if (stat(command_path.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode)) {
-                std::cout << "command (binary) found at: " << get_absolute_path(command_path) << std::endl;
-                return;
-            }
+            // command_path = "../flichShell/builtins/" + name;
+            // if (stat(command_path.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode)) {
+            //     std::cout << "command (binary) found at: " << get_absolute_path(command_path) << std::endl;
+            //     return;
+            // }
+            // 这里应该从PATH获取路径查找，可以利用哈希MAP编制索引表
+
             // 如果不是命令，检查是否为文件或目录
             if (stat(name.c_str(), &file_stat) == 0) {
                 if (S_ISDIR(file_stat.st_mode)) {

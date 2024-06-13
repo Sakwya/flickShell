@@ -5,10 +5,7 @@
 #include <panic.h>
 #include <map>
 
-std::map<std::string, std::string> help_map;
-
-void init_help() {
-    help_map.insert({ 
+std::map<std::string, std::string> help_map{
         {"cd", "cd: cd [-L|[-P [-e]] [-@]] [dir]\n    更改shell工作目录。\n    将当前目录更改为DIR。默认的DIR是HOME shell变量的值。"},
         {"exit", "exit: exit [n]\n    退出shell。\n    退出当前的shell会话。如果提供了n，将返回退出状态n。"},
         {"echo", "echo: echo [arg ...]\n    显示一段文本。\n    将参数作为输出显示在终端上。"},
@@ -31,8 +28,7 @@ void init_help() {
         {"history", "history: history [选项] [n]\n    显示命令历史。\n    列出最近执行的命令。如果提供了数字n，则显示最近的n条命令。"},
         {"type", "type: type [-a] name [name...]\n    显示命令类型。\n    显示指定命令的类型（别名、函数、内建命令、可执行文件等）。"},
         {"alias", "alias: alias [name[=value] ...]\n    创建命令别名。\n    定义或显示别名。无参数时，显示所有别名。"}
-    });
-}
+    };
 
 void display_help(const std::vector<std::string>& args) {
     std::string key;

@@ -1,8 +1,8 @@
 #ifndef LINE_H
 #define LINE_H
-#include<string>
+#include<STRING.h>
 using std::string;
-#include <vector>
+#include <VECTOR.h>
 using std::vector;
 
 const string WHITE_SPACE = " \t\r\n";

@@ -8,13 +8,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <global.h>
-
-#include <builtins/cd.h>
-#include <builtins/help.h>
-#include <builtins/history.h>
-#include <builtins/exit.h>
-#include <builtins/type.h>
 #include <bashline.h>
+#include <builtins/builtins.h>
+
 
 using std::string;
 using std::vector;
@@ -164,51 +160,6 @@ cmd* parse(string line) {
         return cur_cmd;
 }
 
-
-// deal with builtin command
-// returns: 0-nothing_done, 1-success, -1-failure
-int process_builtin_command(const std::string& line) {
-    std::vector<std::string> args = string_split(line, WHITE_SPACE);
-    // 1 - cd
-    if (args[0] == "cd") {
-        change_directory(args);
-        prompt = get_command_prompt();
-        return 1; // successfully processed
-    }
-    // 2 - help
-    if (args[0] == "help") {
-        display_help(args);
-        return 1;
-    }
-    // 3 - alias
-    // 3.5 - unalias
-    // 4 - history
-    if (args[0] == "history") {
-        if (args.size() != 1) {
-            panic("too many arguments");
-            return -1;
-        }
-        show_history();
-        return 1;
-    }
-
-    // 5 - type
-    if (args[0] == "type") {
-        show_type(args);
-        return 1;
-    }
-    // 6 - exit
-    if (args[0] == "exit") {
-        exit_shell(args);
-        return 1;
-    }
-    // 下面几个命令没有要求实现
-    // 7 - jobs
-    // 8 - job_spec
-    // 9 - exec
-    return 0; // nothing done
-}
-
 // run some cmd
 void run_cmd(cmd* cmd_) {
     switch (cmd_->type) {
@@ -307,6 +258,7 @@ void run_cmd(cmd* cmd_) {
         panic("unknown or null cmd type", true, 1);
     }
 }
+
 void reader_loop() {
     prompt = get_command_prompt();
     string line;
@@ -315,8 +267,11 @@ void reader_loop() {
         line = trim(read_line());
         if (line.empty())continue;
         // deal with builtin commands
-        if (process_builtin_command(line) > 0)
+        std::vector<std::string> args = string_split(line, WHITE_SPACE);
+        if(is_builtin(args[0])){
+            run_builtin(args[0],args);
             continue;
+        }
         // fork a new me to execute the typed command
         if (fork_wrap() == 0) {
             cmd* cmd_ = parse(line);
