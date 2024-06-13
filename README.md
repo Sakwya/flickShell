@@ -37,11 +37,6 @@ chsh -s {{path to flickShell}}
 目前设为默认Shell可能会导致部分软件无法使用，实测无法打开vscode。  
 推测为没有实现一些内建指令导致的。
 
-## Shell运行流程
-
-shell <- readline, exal, bashline
-exal <- buildins, bashline
-
 ## 常见问题
 
 ### 1. 没有readline库

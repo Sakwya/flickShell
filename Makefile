@@ -16,7 +16,7 @@ BUILD_DIR = build
 TARGET = $(BUILD_DIR)/flickShell
 
 # 源文件
-SRCS = shell.cpp bashline.cpp eval.cpp line.cpp panic.cpp global.cpp builtins/cd.cpp builtins/help.cpp builtins/history.cpp builtins/type.cpp builtins/exit.cpp
+SRCS = shell.cpp bashline.cpp eval.cpp line.cpp panic.cpp global.cpp builtins/builtins.cpp builtins/alias.cpp builtins/cd.cpp builtins/help.cpp builtins/history.cpp builtins/type.cpp builtins/exit.cpp
 
 # 生成的对象文件
 OBJS = $(SRCS:%.cpp=$(BUILD_DIR)/%.o)

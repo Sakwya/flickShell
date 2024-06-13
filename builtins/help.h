@@ -1,4 +1,3 @@
-#include <vector>
-#include <string>
-extern void init_help();
+#include <VECTOR.h>
+#include <STRING.h>
 extern void display_help(const std::vector<std::string>& args);
