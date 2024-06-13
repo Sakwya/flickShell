@@ -8,18 +8,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <global.h>
-// #include <map>
-// #include <readline/readline.h>
-// #include <readline/history.h>
-// #include <cstdlib>
-// #include <grp.h>
-// #include <iostream>
-// #include <sstream>
-// #include <vector>
-// #include <sys/stat.h>
-// #include <sys/types.h>
-// #include <stdexcept>
-
 
 #include <builtins/cd.h>
 #include <builtins/help.h>
