@@ -5,4 +5,4 @@
 
 extern void panic(const std::string hint, bool exit_ = false, int exit_code = 0);
 
-#endif // PANIC_H
+#endif  // PANIC_H

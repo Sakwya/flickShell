@@ -15,16 +15,7 @@
 using std::string;
 using std::vector;
 int pipe_fd[2];
-// std::map<std::string, std::string> alias_map;
 
-// void init_alias() {
-//     alias_map.insert({ {"ll", "ls -l"} });
-// }
-
-// ==========================
-// proxy functions
-// ==========================
-// wrapped fork function that panics
 int fork_wrap() {
     int pid = fork();
     if (pid == -1)
@@ -166,35 +157,32 @@ void run_cmd(cmd* cmd_) {
     case CMD_TYPE_EXEC:
     {
         exec_cmd* ecmd = static_cast<exec_cmd*>(cmd_);
-        // process alias
-        // if (alias_map.count(ecmd->argv[0]) != 0) {
-        //     vector<string> arg0_replace =
-        //         string_split(alias_map.at(ecmd->argv[0]), WHITE_SPACE);
-        //     ecmd->argv.erase(ecmd->argv.begin());
-        //     for (vector<string>::reverse_iterator it = arg0_replace.rbegin();
-        //         it < arg0_replace.rend(); it++) {
-        //         ecmd->argv.insert(ecmd->argv.begin(), (*it));
-        //     }
-        // }
-        // prepare vector<string> for execvp
-        vector<char*> argv_c_str;
-        for (int i = 0; i < ecmd->argv.size(); i++) {
-            string arg_trim = trim(ecmd->argv[i]);
-            if (arg_trim.length() > 0) { // skip blank string
-                char* tmp = new char[MAX_ARGV_LEN];
-                strcpy(tmp, arg_trim.c_str());
-                argv_c_str.push_back(tmp);
+
+        // 处理别名
+        if (alias_map.count(ecmd->argv[0]) != 0) {
+            vector<string> alias_args = string_split(alias_map[ecmd->argv[0]], WHITE_SPACE);
+            ecmd->argv.erase(ecmd->argv.begin()); // 移除别名
+            ecmd->argv.insert(ecmd->argv.begin(), alias_args.begin(), alias_args.end());
+        }
+
+        // 检查并执行内置命令
+        if (is_builtin(ecmd->argv[0])) {
+            run_builtin(ecmd->argv[0], ecmd->argv);
+        } else {
+            // 准备并执行外部命令
+            vector<char*> argv_c_str;
+            for (const auto& arg : ecmd->argv) {
+                argv_c_str.push_back(const_cast<char*>(arg.c_str()));
+            }
+            argv_c_str.push_back(nullptr);
+
+            if (execvp(argv_c_str[0], argv_c_str.data()) < 0) {
+                panic("execvp failed", true, errno);
             }
         }
-        argv_c_str.push_back(NULL);
-        char** argv_c_arr = &argv_c_str[0];
-        // vscode made wrong marco expansion here
-        // second argument is ok for char** rather than char *const (*(*)())[]
-        int execvp_ret = execvp(argv_c_arr[0], argv_c_arr);
-        if (execvp_ret < 0)
-            panic("execvp failed");
         break;
     }
+
     case CMD_TYPE_PIPE:
     {
         pipe_cmd* pcmd = static_cast<pipe_cmd*>(cmd_);
@@ -260,7 +248,7 @@ void run_cmd(cmd* cmd_) {
 }
 
 void reader_loop() {
-    prompt = get_command_prompt();
+    set_prompt();
     string line;
     int wait_status;
     while (true) {
@@ -268,8 +256,8 @@ void reader_loop() {
         if (line.empty())continue;
         // deal with builtin commands
         std::vector<std::string> args = string_split(line, WHITE_SPACE);
-        if(is_builtin(args[0])){
-            run_builtin(args[0],args);
+        if (is_builtin(args[0])) {
+            run_builtin(args[0], args);
             continue;
         }
         // fork a new me to execute the typed command

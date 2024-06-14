@@ -1,5 +1,5 @@
 #ifndef MAP
 #define MAP
-#include<map>
+#include <map>
 
-#endif //MAP
+#endif // MAP
