@@ -248,7 +248,7 @@ void run_cmd(cmd* cmd_) {
 }
 
 void reader_loop() {
-    prompt = get_command_prompt();
+    set_prompt();
     string line;
     int wait_status;
     while (true) {

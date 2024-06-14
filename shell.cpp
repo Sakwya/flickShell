@@ -8,9 +8,8 @@
 using namespace std;
 
 void init_shell() {
-  get_command_prompt();
+  set_prompt();
   string filePath = home_dir + "/.flickshrc";
-  panic(filePath);
   std::ifstream usrConfig(filePath);
   if (!usrConfig.good()) {
     usrConfig.close();
@@ -21,7 +20,16 @@ void init_shell() {
       newConfig << "# ./flickshrc" << endl;
       newConfig.close();
     }
+    return;
   }
+  std::string line;
+  while (std::getline(usrConfig, line)) {
+    // 在这里处理每一行的内容，比如打印出来
+    if (line[0]=='#'){
+
+    }
+  }
+  usrConfig.close();
 }
 
 int main() {
