@@ -1,8 +1,6 @@
+#include <config.h>
 #include <line.h>
 #include <panic.h>
-#include <config.h>
-
-
 
 bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != -1; }
 
@@ -41,7 +39,8 @@ vector<string> string_split_protect(const string& str, const string& delims) {
       tmp.push_back(str[i]);
     }
   }
-  if (tmp.length() > 0) vec.push_back(tmp);
+  if (tmp.length() > 0)
+    vec.push_back(tmp);
   return vec;
 }
 

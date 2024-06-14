@@ -1,6 +1,6 @@
 #ifndef LINE_H
 #define LINE_H
-#include<STRING.h>
+#include <STRING.h>
 using std::string;
 #include <VECTOR.h>
 using std::vector;
@@ -16,4 +16,4 @@ extern string string_split_last(const string&, const string&);
 extern string string_split_first(const string&, const string&);
 extern string trim(const string&);
 
-#endif //LINE_H
+#endif  // LINE_H

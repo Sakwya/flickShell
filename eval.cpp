@@ -15,16 +15,7 @@
 using std::string;
 using std::vector;
 int pipe_fd[2];
-// std::map<std::string, std::string> alias_map;
 
-// void init_alias() {
-//     alias_map.insert({ {"ll", "ls -l"} });
-// }
-
-// ==========================
-// proxy functions
-// ==========================
-// wrapped fork function that panics
 int fork_wrap() {
     int pid = fork();
     if (pid == -1)
@@ -173,7 +164,7 @@ void run_cmd(cmd* cmd_) {
             ecmd->argv.erase(ecmd->argv.begin()); // 移除别名
             ecmd->argv.insert(ecmd->argv.begin(), alias_args.begin(), alias_args.end());
         }
-        
+
         // 检查并执行内置命令
         if (is_builtin(ecmd->argv[0])) {
             run_builtin(ecmd->argv[0], ecmd->argv);
@@ -265,8 +256,8 @@ void reader_loop() {
         if (line.empty())continue;
         // deal with builtin commands
         std::vector<std::string> args = string_split(line, WHITE_SPACE);
-        if(is_builtin(args[0])){
-            run_builtin(args[0],args);
+        if (is_builtin(args[0])) {
+            run_builtin(args[0], args);
             continue;
         }
         // fork a new me to execute the typed command

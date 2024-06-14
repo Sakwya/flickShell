@@ -26,7 +26,7 @@ const std::map<std::string, std::string> aliases = {
     {"lt", "ls -lt"},
     {"lS", "ls -S"},
     {"grep", "grep --color=auto"},
-    {"ls", "grep --color=auto"},    
+    {"ls", "grep --color=auto"},
 };
 
 
@@ -63,36 +63,36 @@ void show_type(const std::vector<std::string>& args) {
     // 检查是否是内置命令或别名
     CommandType commandType = is_builtin_or_alias(name);
     switch (commandType) {
-        case BUILTIN:
-            std::cout << "builtin command: " << name << std::endl;
-            return;
-        case ALIAS:
-            std::cout << "alias command: " << name << " -> " << aliases.at(name) << std::endl;
-            return;
-        case NOT_FOUND:
-            // 尝试找到命令的路径
-            // command_path = "../flichShell/builtins/" + name;
-            // if (stat(command_path.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode)) {
-            //     std::cout << "command (binary) found at: " << get_absolute_path(command_path) << std::endl;
-            //     return;
-            // }
-            // 这里应该从PATH获取路径查找，可以利用哈希MAP编制索引表
+    case BUILTIN:
+        std::cout << "builtin command: " << name << std::endl;
+        return;
+    case ALIAS:
+        std::cout << "alias command: " << name << " -> " << aliases.at(name) << std::endl;
+        return;
+    case NOT_FOUND:
+        // 尝试找到命令的路径
+        // command_path = "../flichShell/builtins/" + name;
+        // if (stat(command_path.c_str(), &file_stat) == 0 && S_ISREG(file_stat.st_mode)) {
+        //     std::cout << "command (binary) found at: " << get_absolute_path(command_path) << std::endl;
+        //     return;
+        // }
+        // 这里应该从PATH获取路径查找，可以利用哈希MAP编制索引表
 
-            // 如果不是命令，检查是否为文件或目录
-            if (stat(name.c_str(), &file_stat) == 0) {
-                if (S_ISDIR(file_stat.st_mode)) {
-                    std::cout << "directory found at: " << get_absolute_path(name) << std::endl;
-                } else if (S_ISREG(file_stat.st_mode)) {
-                    std::cout << "regular file found at: " << get_absolute_path(name) << std::endl;
-                    // 打印文件内容（省略，使用之前定义的print_file_contents函数）
-                } else {
-                    std::cout << "other type of file found at: " << get_absolute_path(name) << std::endl;
-                    // 处理其他文件类型
-                }
+        // 如果不是命令，检查是否为文件或目录
+        if (stat(name.c_str(), &file_stat) == 0) {
+            if (S_ISDIR(file_stat.st_mode)) {
+                std::cout << "directory found at: " << get_absolute_path(name) << std::endl;
+            } else if (S_ISREG(file_stat.st_mode)) {
+                std::cout << "regular file found at: " << get_absolute_path(name) << std::endl;
+                // 打印文件内容（省略，使用之前定义的print_file_contents函数）
             } else {
-                // stat调用失败，可能是因为文件不存在或无法访问
-                std::cout << "entity does not exist or cannot be accessed: " << name << std::endl;
+                std::cout << "other type of file found at: " << get_absolute_path(name) << std::endl;
+                // 处理其他文件类型
             }
-            return;
+        } else {
+            // stat调用失败，可能是因为文件不存在或无法访问
+            std::cout << "entity does not exist or cannot be accessed: " << name << std::endl;
+        }
+        return;
     }
 }

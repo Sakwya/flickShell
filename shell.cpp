@@ -1,10 +1,10 @@
-#include <eval.h>
 #include <bashline.h>
+#include <eval.h>
+#include <fstream>
 #include <global.h>
 #include <panic.h>
-#include <fstream>
-#include <readline/readline.h>
 #include <readline/history.h>
+#include <readline/readline.h>
 using namespace std;
 
 void init_shell() {
@@ -16,22 +16,22 @@ void init_shell() {
     usrConfig.close();
     std::ofstream newConfig(filePath, std::ios::app);
     if (!newConfig.is_open()) {
-      panic("Failed to open file: "+filePath);
-      exit(1);
-    }else{
-      newConfig << "# ./flickshrc"<<endl;
+      panic("Failed to open file: " + filePath, true, 1);
+    } else {
+      newConfig << "# ./flickshrc" << endl;
+      newConfig.close();
     }
   }
 }
 
 int main() {
-    rl_initialize();
-    using_history();
-    fflush(stdout);
-    rl_on_new_line();
-    rl_bind_key('\t', rl_complete);
+  rl_initialize();
+  using_history();
+  fflush(stdout);
+  rl_on_new_line();
+  rl_bind_key('\t', rl_complete);
 
-    init_shell();
-    reader_loop();
-    return 0;
+  init_shell();
+  reader_loop();
+  return 0;
 }

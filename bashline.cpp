@@ -1,12 +1,12 @@
 #include <bashline.h>
-#include <line.h>
-#include <unistd.h>
-#include <pwd.h>
+#include <config.h>
 #include <fstream>
 #include <global.h>
-#include <config.h>
-#include <readline/readline.h>
+#include <line.h>
+#include <pwd.h>
 #include <readline/history.h>
+#include <readline/readline.h>
+#include <unistd.h>
 // ==========================
 // show the command prompt in front of each line
 // **example** [root@localhost tmp]>
@@ -51,7 +51,7 @@ string get_command_prompt() {
     cwd = string_split_last(cwd, "/");
   }
 
-  //prompt = getenv("P1");
+  // prompt = getenv("P1");
 
   // output
   string _prompt = "[";
@@ -64,10 +64,9 @@ string get_command_prompt() {
   return _prompt;
 }
 
-string read_line(){
+string read_line() {
   string line = trim(readline(prompt.c_str()));
-  while (line.empty())
-  {
+  while (line.empty()) {
     line = trim(readline(prompt.c_str()));
   }
   add_history(line.c_str());
