@@ -19,5 +19,9 @@
 #define CMD_TYPE_PIPE 2         // pipe command
 #define CMD_TYPE_REDIR_IN 4     // redirect using <
 #define CMD_TYPE_REDIR_OUT 8    // redirect using >
+#define CMD_TYPE_AND 16         // and exec command
+#define CMD_BACKGROUND_FALSE 0  // background exec command
+#define CMD_BACKGROUND_TRUE 1   // background exec command
+
 #define REDIR_IN_OFLAG O_RDONLY
 #define REDIR_OUT_OFLAG O_WRONLY | O_CREAT | O_TRUNC
