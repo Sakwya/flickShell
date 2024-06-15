@@ -6,7 +6,7 @@ using std::string;
 using std::vector;
 
 const string WHITE_SPACE = " \t\r\n";
-const string SYMBOL = "|<>";
+const string SYMBOL = "&|<>";
 
 extern bool is_white_space(char);
 extern bool is_symbol(char);
