@@ -30,7 +30,7 @@ std::unordered_map<std::string, void (*)(const std::vector<std::string>&)>
     builtins_map{{"alias", &alias},       {"cd", &change_directory},
                  {"help", &display_help}, {"exit", &exit_shell},
                  {"export", &export_env}, {"history", &display_history},
-                 {"type", &display_type},    {"unalias", &alias}};
+                 {"type", &display_type},    {"unalias", &unalias}};
 bool is_builtin(const std::string name) {
   auto it = builtins_set.find(name);
   return (it != builtins_set.end());

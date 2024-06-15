@@ -309,7 +309,8 @@ void reader_loop() {
     line = trim(read_line());
     if (line.empty()) continue;
     // deal with builtin commands
-    std::vector<std::string> args = string_split(line, WHITE_SPACE);
+    std::vector<std::string> args = string_split_protect(line, WHITE_SPACE);
+
     if (is_builtin(args[0])) {
       run_builtin(args[0], args);
       continue;
