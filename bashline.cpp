@@ -53,14 +53,12 @@ void set_prompt() {
     // keep only the last level of directory
     cwd = string_split_last(cwd, "/");
   }
-  char* P1 = getenv("P1");
-  if (P1) {
-    prompt.assign(P1);
-  } else {
-    panic("空指针");
-  }
-  // panic(prompt);
-  // output
+  // char* P1 = getenv("P1");
+  // if (P1) {
+  //   prompt.assign(P1);
+  // } else {
+  //   panic("空指针");
+  // }
   prompt.clear();
   if (username != "root") {
     prompt.append(ANSI_COLOR_CYAN);
