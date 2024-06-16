@@ -20,9 +20,9 @@ std::string get_absolute_path(const std::string& path) {
   }
 }
 
-enum CommandType { NOT_FOUND, BUILTIN, ALIAS };
+enum CommandType { NOT_FOUND, BUILTIN, ALIAS, EXEC_COMMAND };
 
-CommandType is_builtin_or_alias(const std::string& name) {
+CommandType get_command_type(const std::string& name) {
   // 检查是否是内置命令
   if (is_builtin(name)) {
     return BUILTIN;
@@ -31,7 +31,10 @@ CommandType is_builtin_or_alias(const std::string& name) {
   if (alias_map.find(name) != alias_map.end()) {
     return ALIAS;
   }
-  // 如果都不是，返回false
+  // 检查是否是可执行命令
+  if (command_map.find(name) != command_map.end()) {
+    return EXEC_COMMAND;
+  }
   return NOT_FOUND;
 }
 
@@ -40,7 +43,7 @@ void show_type(const std::string& command_name) {
   std::string command_path;
 
   // 检查是否是内置命令或别名
-  CommandType commandType = is_builtin_or_alias(command_name);
+  CommandType commandType = get_command_type(command_name);
   switch (commandType) {
     case BUILTIN:
       std::cout << command_name << " is builtin command" << std::endl;
@@ -48,6 +51,10 @@ void show_type(const std::string& command_name) {
     case ALIAS:
       std::cout << command_name << " is aliased to `"
                 << alias_map.at(command_name) << '`' << std::endl;
+      break;
+    case EXEC_COMMAND:
+      std::cout << command_name << " is " << command_map.at(command_name)
+                << std::endl;
       break;
     default:
       std::cout << "command not found: " << command_name << std::endl;
