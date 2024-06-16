@@ -7,30 +7,16 @@
 #include <builtins/help.h>
 #include <builtins/history.h>
 #include <builtins/type.h>
+#include <global.h>
 #include <panic.h>
 
 #include <unordered_map>
-#include <unordered_set>
 
-std::unordered_set<std::string> builtins_set{
-    "alias",
-    "cd",
-    "help",
-    "exit",
-    "type",
-    // "pwd",
-    // "echo",
-    // "env",
-    "export",
-    // "unset",
-    "unalias",
-    "history",
-};
 std::unordered_map<std::string, void (*)(const std::vector<std::string>&)>
     builtins_map{{"alias", &alias},       {"cd", &change_directory},
                  {"help", &display_help}, {"exit", &exit_shell},
                  {"export", &export_env}, {"history", &display_history},
-                 {"type", &display_type},    {"unalias", &unalias}};
+                 {"type", &display_type}, {"unalias", &unalias}};
 bool is_builtin(const std::string name) {
   auto it = builtins_set.find(name);
   return (it != builtins_set.end());
