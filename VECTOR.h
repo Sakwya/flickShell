@@ -2,4 +2,4 @@
 #define VECTOR
 #include <vector>
 
-#endif //VECTOR
+#endif // VECTOR

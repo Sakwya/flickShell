@@ -28,7 +28,7 @@ std::map<std::string, std::string> help_map{
         {"history", "history: history [选项] [n]\n    显示命令历史。\n    列出最近执行的命令。如果提供了数字n，则显示最近的n条命令。"},
         {"type", "type: type [-a] name [name...]\n    显示命令类型。\n    显示指定命令的类型（别名、函数、内建命令、可执行文件等）。"},
         {"alias", "alias: alias [name[=value] ...]\n    创建命令别名。\n    定义或显示别名。无参数时，显示所有别名。"}
-    };
+};
 
 void display_help(const std::vector<std::string>& args) {
     std::string key;

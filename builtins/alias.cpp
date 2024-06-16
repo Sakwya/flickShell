@@ -1,45 +1,79 @@
-#include<builtins/alias.h>
-#include<global.h>
-#include<iostream>
-#include<panic.h>
+#include <builtins/alias.h>
+#include <global.h>
+#include <panic.h>
 
-void alias(const std::vector<std::string>& args) {
-    if (args.size() == 2 && args[1] == "-l") {
-        // 显示所有别名
-        if (alias_map.empty()) {
-            std::cout << "No aliases defined." << std::endl;
-        } else {
-            for (const auto& pair : alias_map) {
-                std::cout << pair.first << " = " << pair.second << std::endl;
-            }
-        }
-    } else if (args.size() >= 3) {
-        std::string subcommand = args[1];
-        if (subcommand == "-d") {
-            // 删除别名
-            std::string alias_to_delete = args[2];
-            auto it = alias_map.find(alias_to_delete);
-            if (it != alias_map.end()) {
-                alias_map.erase(it);
-                std::cout << "Alias '" << alias_to_delete << "' deleted." << std::endl;
-            } else {
-                std::cout << "Alias '" << alias_to_delete << "' not found." << std::endl;
-            }
-        } else {
-            // 添加别名
-            std::string alias_name = subcommand;
-            std::string command;
-            for (size_t i = 2; i < args.size(); ++i) {
-                command += args[i];
-                if (i < args.size() - 1) {
-                    command += " ";
-                }
-            }
-            alias_map[alias_name] = command;
-            std::cout << "Alias '" << alias_name << "' added." << std::endl;
-        }
-    } else {
-        // 错误使用 alias 命令
-        panic("Usage: alias [-l] | alias <alias_name> <command> | alias -d <alias_name>");
+#include <iostream>
+void show_alias_map() {
+  if (alias_map.empty())
+    std::cout << "No aliases defined." << std::endl;
+  else
+    for (const auto& pair : alias_map)
+      std::cout << "alias " << pair.first << "='" << pair.second << '\''
+                << std::endl;
+  return;
+}
+void parse_alias(const std::string& str) {
+  int index = 0;
+  if (str[0] == '=' || str[0] == '-') {
+    std::string message = "invalid name: ";
+    message.append(str);
+    panic(message);
+    return;
+  }
+  for (int i = 1; i < str.length(); i++) {
+    if (str[i] == '=') {
+      std::string name = str.substr(0, i);
+      std::string value = str.substr(i + 1);
+      alias_map[name] = value;
+      return;
     }
+  }
+  auto it = alias_map.find(str);
+  if (it != alias_map.end()) {
+    std::cout << "alias " << str << "='" << it->second << '\'' << std::endl;
+  }
+}
+void alias(const std::vector<std::string>& args) {
+  switch (args.size()) {
+    case 1:
+      show_alias_map();
+      return;
+    case 2:
+      if (args[1] == "-p") {
+        show_alias_map();
+        return;
+      }
+      parse_alias(args[1]);
+    default:
+      break;
+  }
+  // size > 2
+  int index = 1;
+  if (args[1] == "-p") {
+    show_alias_map();
+    index = 2;
+  }
+  for (; index < args.size(); index++) parse_alias(args[index]);
+  return;
+}
+
+extern void unalias(const std::vector<std::string>& args) {
+  if (args.size() == 1) {
+    message("unalias: usage: unalias [-a] name [name ...]");
+  }
+  if (args[1] == "-a") {
+    alias_map.clear();
+    return;
+  }
+  for (int i = 1; i < args.size(); i++) {
+    auto it = alias_map.find(args[i]);
+    if (it != alias_map.end()) {
+      alias_map.erase(args[i]);
+      continue;
+    }
+    std::string message = "unalias: ";
+    message.append(args[i]);
+    message.append(": not found");
+    panic(message);
+  }
 }

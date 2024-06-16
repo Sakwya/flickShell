@@ -1,23 +1,19 @@
+#include <config.h>
 #include <line.h>
 #include <panic.h>
-#include <config.h>
 
+bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != string::npos; }
 
-
-bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != -1; }
-
-bool is_symbol(char ch) { return SYMBOL.find(ch) != -1; }
+bool is_symbol(char ch) { return SYMBOL.find(ch) != string::npos; }
 
 vector<string> string_split(const string& s, const string& delims) {
   vector<string> vec;
   int p = 0, q;
   while ((q = s.find_first_of(delims, p)) != string::npos) {
-    if (q > p)
-      vec.push_back(s.substr(p, q - p));
+    if (q > p) vec.push_back(s.substr(p, q - p));
     p = q + 1;
   }
-  if (p < s.length())
-    vec.push_back(s.substr(p));
+  if (p < s.length()) vec.push_back(s.substr(p));
   return vec;
 }
 
@@ -30,16 +26,23 @@ vector<string> string_split_protect(const string& str, const string& delims) {
       vec.push_back(tmp);
       tmp = "";
     } else if (str[i] == '\"') {
-      i++; // skip "
+      i++;  // skip "
       while (str[i] != '\"' && i < str.length()) {
         tmp.push_back(str[i]);
         i++;
       }
-      if (i == str.length())
-        panic("unclosed quote");
-    } else {
+      if (i == str.length()) panic("unclosed quote");
+    } else if (str[i] == '\'') {
+      i++;  // skip "
+      while (str[i] != '\'' && i < str.length()) {
+        tmp.push_back(str[i]);
+        i++;
+      }
+      if (i == str.length()) panic("unclosed quote");
+    } else if (str[i] == '#')  // comment
+      break;
+    else
       tmp.push_back(str[i]);
-    }
   }
   if (tmp.length() > 0) vec.push_back(tmp);
   return vec;
@@ -62,12 +65,9 @@ string string_split_first(const string& s, const string& delims) {
 }
 
 string trim(const string& s) {
-  if (s.length() == 0)
-    return string(s);
+  if (s.length() == 0) return string(s);
   int p = 0, q = s.length() - 1;
-  while (is_white_space(s[p]))
-    p++;
-  while (is_white_space(s[q]))
-    q--;
+  while (is_white_space(s[p])) p++;
+  while (is_white_space(s[q])) q--;
   return s.substr(p, q - p + 1);
 }

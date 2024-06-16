@@ -1,12 +1,15 @@
 #include <bashline.h>
-#include <line.h>
-#include <unistd.h>
-#include <pwd.h>
-#include <fstream>
-#include <global.h>
 #include <config.h>
-#include <readline/readline.h>
+#include <global.h>
+#include <line.h>
+#include <panic.h>
+#include <pwd.h>
 #include <readline/history.h>
+#include <readline/readline.h>
+#include <unistd.h>
+
+// #include <fstream>
+
 // ==========================
 // show the command prompt in front of each line
 // **example** [root@localhost tmp]>
@@ -19,7 +22,7 @@ string hostname;
 
 char char_buf[CHAR_BUF_SIZE];
 
-string get_command_prompt() {
+void set_prompt() {
   uid_t new_uid = getuid();
   if (new_uid != uid) {
     uid = new_uid;
@@ -32,10 +35,10 @@ string get_command_prompt() {
 
     // consider home path (~)
     if (username == "root")
-      home_dir = "/root"; // home for root
+      home_dir = "/root";  // home for root
     else {
       home_dir = "/home/";
-      home_dir.append(username); // home for other user
+      home_dir.append(username);  // home for other user
     }
   }
 
@@ -50,24 +53,41 @@ string get_command_prompt() {
     // keep only the last level of directory
     cwd = string_split_last(cwd, "/");
   }
-
-  //prompt = getenv("P1");
-
-  // output
-  string _prompt = "[";
-  _prompt.append(username);
-  _prompt.push_back('@');
-  _prompt.append(hostname);
-  _prompt.push_back(' ');
-  _prompt.append(cwd);
-  _prompt.append("]>");
-  return _prompt;
+  // char* P1 = getenv("P1");
+  // if (P1) {
+  //   prompt.assign(P1);
+  // } else {
+  //   panic("空指针");
+  // }
+  prompt.clear();
+  if (username != "root") {
+    prompt.append(ANSI_COLOR_CYAN);
+    prompt = "[";
+    prompt.append(ANSI_COLOR_GREEN);
+    prompt.append(username);
+    prompt.push_back('@');
+    prompt.append(hostname);
+    prompt.append(ANSI_COLOR_CYAN);
+    prompt.push_back(' ');
+    prompt.append(cwd);
+    prompt.append(ANSI_COLOR_RESET);
+    prompt.append("]> ");
+    prompt.append(ANSI_COLOR_RESET);
+  } else {
+    prompt = "[";
+    prompt.append(username);
+    prompt.push_back('@');
+    prompt.append(hostname);
+    prompt.push_back(' ');
+    prompt.append(cwd);
+    prompt.append("]> ");
+  }
+  return;
 }
 
-string read_line(){
+string read_line() {
   string line = trim(readline(prompt.c_str()));
-  while (line.empty())
-  {
+  while (line.empty()) {
     line = trim(readline(prompt.c_str()));
   }
   add_history(line.c_str());

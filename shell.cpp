@@ -5,6 +5,7 @@
 #include <panic.h>
 #include <readline/history.h>
 #include <readline/readline.h>
+
 #include <iostream>
 
 using namespace std;
@@ -52,32 +53,37 @@ void init_readline() {
 
 // 初始化shell配置
 void init_shell() {
-    set_prompt();
-    string flickshrc_path = home_dir + "/.flickshrc";
-    ifstream usrConfig(flickshrc_path);
-    if (!usrConfig.good()) {
-        usrConfig.close();
-        ofstream newConfig(flickshrc_path, ios::app);
-        if (!newConfig.is_open()) {
-            panic("Failed to open file: " + flickshrc_path, true, 1);
-        } else {
-            newConfig << "# ./flickshrc" << endl;
-            newConfig.close();
-        }
-        return;
+  set_prompt();
+  string filePath = home_dir + "/.flickshrc";
+  std::ifstream rc_flie(filePath);
+  if (!rc_flie.good()) {
+    rc_flie.close();
+    std::ofstream newConfig(filePath, std::ios::app);
+    if (!newConfig.is_open()) {
+      panic("Failed to open file: " + filePath, true, 1);
+    } else {
+      newConfig << "# ./flickshrc" << endl;
+      newConfig.close();
     }
-    // 读取.flickshrc文件内容，这里可以添加处理逻辑
-    usrConfig.close();
+    return;
+  }
+  std::string line;
+  while (std::getline(rc_flie, line)) {
+    // 在这里处理每一行的内容，比如打印出来
+    flickshrc.push_back(line);
+  }
+  rc_flie.close();
 }
 
 int main() {
-    rl_initialize();
-    init_readline();
-    using_history();
-    fflush(stdout);
-    rl_on_new_line();
-    rl_bind_key('\t', rl_complete);
-    init_shell();
-    reader_loop();
-    return 0;
+  rl_initialize();
+  init_readline();
+  using_history();
+  fflush(stdout);
+  rl_on_new_line();
+  rl_bind_key('\t', rl_complete);
+  init_shell();
+  processing_rc();
+  reader_loop();
+  return 0;
 }
