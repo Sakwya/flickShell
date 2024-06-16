@@ -6,10 +6,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 添加可执行文件生成路径
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/build)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
-# 查找需要的库（例如：readline）
-find_package(Readline REQUIRED)
+# # 查找需要的库（例如：readline）
+# find_package(Readline REQUIRED)
 
 # 添加源文件列表
 set(SOURCES
@@ -29,11 +29,17 @@ set(SOURCES
     builtins/exit.cpp
 )
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+
 # 添加可执行文件目标
 add_executable(flickShell ${SOURCES})
 
+set(Readline_INCLUDE_DIRS "/usr/include/readline")
+set(Readline_LIBRARIES "-lreadline")
+
+# find_package(Readline REQUIRED)
 # 链接 readline 库
-target_link_libraries(flickShell PRIVATE ${Readline_LIBRARY})
+target_link_libraries(flickShell PRIVATE ${Readline_LIBRARIES})
 
 # 设置编译选项
 target_compile_options(flickShell PRIVATE -Wall -g)
