@@ -9,8 +9,8 @@
 #include <unistd.h>
 
 #include <filesystem>
+#include <unordered_set>
 namespace fs = std::filesystem;
-// #include <fstream>
 
 // ==========================
 // show the command prompt in front of each line
@@ -96,6 +96,11 @@ string read_line() {
   return line;
 }
 
+// ==========================
+// auto complete
+// ==========================
+
+
 void populateCommandMap() {
   // 获取 PATH 环境变量
   const char* path = std::getenv("PATH");
@@ -146,6 +151,13 @@ char* command_generator(const char* text, int state) {
     match_index = 0;
 
     // 查找 shell_commands
+
+    for (const auto& name : builtins_set) {
+      if (name.compare(0, len, text) == 0) {
+        matches.push_back(name);
+      }
+    }
+
     for (const auto& pair : alias_map) {
       if (pair.first.compare(0, len, text) == 0) {
         matches.push_back(pair.first);
