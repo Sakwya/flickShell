@@ -8,6 +8,8 @@
 #include <readline/readline.h>
 #include <unistd.h>
 
+#include <filesystem>
+namespace fs = std::filesystem;
 // #include <fstream>
 
 // ==========================
@@ -92,4 +94,94 @@ string read_line() {
   }
   add_history(line.c_str());
   return line;
+}
+
+void populateCommandMap() {
+  // 获取 PATH 环境变量
+  const char* path = std::getenv("PATH");
+  if (path == nullptr) {
+    panic("PATH environment variable is not set.");
+    return;
+  }
+
+  // 将 PATH 转换为字符串向量
+  std::vector<std::string> pathList;
+  std::string pathStr(path);
+  size_t start = 0, end;
+  while ((end = pathStr.find(":", start)) != std::string::npos) {
+    pathList.push_back(pathStr.substr(start, end - start));
+    start = end + 1;
+  }
+  pathList.push_back(pathStr.substr(start));
+
+  // 遍历每个路径并将可执行文件加入映射
+  for (const auto& dir : pathList) {
+    try {
+      for (const auto& entry : fs::directory_iterator(dir)) {
+        if (fs::is_regular_file(entry) &&
+            (fs::status(entry).permissions() & fs::perms::owner_exec) !=
+                fs::perms::none) {
+          // 获取文件名作为命令，完整路径作为值
+          std::string command = entry.path().filename().string();
+          std::string fullPath = entry.path().string();
+          command_map[command] = fullPath;
+        }
+      }
+    } catch (const fs::filesystem_error& e) {
+      std::string message = "path cannot access: ";
+      message.append(dir);
+      panic(message);
+      continue;
+    }
+  }
+}
+// 命令生成器
+char* command_generator(const char* text, int state) {
+  static std::vector<std::string> matches;
+  static size_t match_index;
+  size_t len = strlen(text);
+
+  if (!state) {
+    matches.clear();
+    match_index = 0;
+
+    // 查找 shell_commands
+    for (const auto& pair : alias_map) {
+      if (pair.first.compare(0, len, text) == 0) {
+        matches.push_back(pair.first);
+      }
+    }
+
+    // 查找 command_map
+    for (const auto& pair : command_map) {
+      if (pair.first.compare(0, len, text) == 0) {
+        matches.push_back(pair.first);
+      }
+    }
+  }
+
+  if (match_index < matches.size()) {
+    return strdup(matches[match_index++].c_str());
+  } else {
+    return NULL;
+  }
+}
+
+// 补全逻辑
+char** shell_completion(const char* text, int start, int end) {
+  if (start == 0) {
+    return rl_completion_matches(text, command_generator);
+  }
+  return NULL;
+}
+
+void init_bashline() {
+  populateCommandMap();
+  rl_initialize();
+  using_history();
+  fflush(stdout);
+  rl_on_new_line();
+  rl_bind_key('\t', rl_complete);
+  rl_readline_name = "flickShell";                      // 设置shell的名字
+  rl_attempted_completion_function = shell_completion;  // 设置补全函数
 }

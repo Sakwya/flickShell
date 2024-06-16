@@ -31,7 +31,7 @@ $(TARGET): $(OBJS)
 # 编译.cpp文件为.o文件
 $(BUILD_DIR)/%.o: %.cpp | $(BUILD_DIR)
 	@mkdir -p $(dir $@) # 确保生成对象文件的目录存在
-	$(CXX) -c $< -o $@ $(CXXFLAGS)
+	$(CXX) -std=c++17 -c $< -o $@ $(CXXFLAGS)
 
 # 创建目标文件夹
 $(BUILD_DIR):

@@ -1,5 +1,6 @@
 #include <builtins/builtins.h>
 #include <builtins/type.h>
+#include <global.h>
 #include <limits.h>
 #include <panic.h>
 #include <sys/stat.h>
@@ -19,16 +20,6 @@ std::string get_absolute_path(const std::string& path) {
   }
 }
 
-// 别名列表
-const std::map<std::string, std::string> aliases = {
-    {"ll", "ls -l"},
-    {"la", "ls -a"},
-    {"lt", "ls -lt"},
-    {"lS", "ls -S"},
-    {"grep", "grep --color=auto"},
-    {"ls", "grep --color=auto"},
-};
-
 enum CommandType { NOT_FOUND, BUILTIN, ALIAS };
 
 CommandType is_builtin_or_alias(const std::string& name) {
@@ -37,7 +28,7 @@ CommandType is_builtin_or_alias(const std::string& name) {
     return BUILTIN;
   }
   // 检查是否是别名
-  if (aliases.find(name) != aliases.end()) {
+  if (alias_map.find(name) != alias_map.end()) {
     return ALIAS;
   }
   // 如果都不是，返回false
@@ -50,20 +41,18 @@ void show_type(const std::string& command_name) {
 
   // 检查是否是内置命令或别名
   CommandType commandType = is_builtin_or_alias(command_name);
-  std::cout << command_name << ": ";
   switch (commandType) {
     case BUILTIN:
-      std::cout << "builtin command" << command_name << std::endl;
+      std::cout << command_name << " is builtin command" << std::endl;
       break;
     case ALIAS:
-      std::cout << "aliased to `" << aliases.at(command_name) << '`'
-                << std::endl;
+      std::cout << command_name << " is aliased to `"
+                << alias_map.at(command_name) << '`' << std::endl;
       break;
     default:
       std::cout << "command not found: " << command_name << std::endl;
       break;
   }
-  std::cout << std::endl;
 }
 void display_type(const std::vector<std::string>& args) {
   // 检查参数数量
