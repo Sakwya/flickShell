@@ -36,7 +36,7 @@ int dup2_wrap(int fd1, int fd2) {
 
 // wrapped open function that panics
 int open_wrap(const char* file, int oflag) {
-  int open_ret = open(file, oflag);
+  int open_ret = open(file, oflag, 0666);  // 确保有权限参数
   if (open_ret < 0) panic("open failed.", true, 1);
   return open_ret;
 }
@@ -250,13 +250,14 @@ int run_cmd(cmd* cmd_, int c_index = 1) {
         // i'm a child, let's satisfy the file being redirected to (or from)
         if (rcmd->type == CMD_TYPE_REDIR_IN) {
           rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_IN_OFLAG);
-          dup2_wrap(rcmd->fd, rcmd->type == fileno(stdin));
+          dup2_wrap(rcmd->fd, STDIN_FILENO);
         } else {
           rcmd->fd = open_wrap(rcmd->file.c_str(), REDIR_OUT_OFLAG);
-          dup2_wrap(rcmd->fd, rcmd->type == fileno(stdout));
+          dup2_wrap(rcmd->fd, STDOUT_FILENO);
         }
-        run_cmd(rcmd->cmd_);
         close(rcmd->fd);
+        run_cmd(rcmd->cmd_);
+        exit(0);
       }
       // if fork > 0, then i'm the father
       // let's wait for my children

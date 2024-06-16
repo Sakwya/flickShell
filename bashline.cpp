@@ -9,7 +9,6 @@
 #include <unistd.h>
 
 #include <filesystem>
-#include <unordered_set>
 namespace fs = std::filesystem;
 
 // ==========================
@@ -99,7 +98,6 @@ string read_line() {
 // ==========================
 // auto complete
 // ==========================
-
 
 void populateCommandMap() {
   // 获取 PATH 环境变量
