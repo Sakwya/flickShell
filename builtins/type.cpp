@@ -70,6 +70,7 @@ void display_type(const std::vector<std::string>& args) {
   size_t index = 1, size = args.size();
   while (index < size) {
     show_type(args[index]);
+    index++;
   }
   return;
 }
