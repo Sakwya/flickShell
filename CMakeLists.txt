@@ -6,10 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 添加可执行文件生成路径
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
-
-# # 查找需要的库（例如：readline）
-# find_package(Readline REQUIRED)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
 
 # 添加源文件列表
 set(SOURCES
@@ -48,3 +45,6 @@ target_compile_options(flickShell PRIVATE -Wall -g)
 target_include_directories(flickShell PRIVATE
     ${Readline_INCLUDE_DIR}
 )
+
+install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/bin/flickShell
+        DESTINATION /usr/local/bin)
