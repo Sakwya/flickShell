@@ -1,11 +1,11 @@
 #include <bashline.h>
 #include <builtins/builtins.h>
-#include <config.h>
 #include <eval.h>
 #include <fcntl.h>
 #include <global.h>
 #include <line.h>  //包含了string 和 vector
 #include <panic.h>
+#include <shell_config.h>
 #include <sys/wait.h>
 #include <unistd.h>
 

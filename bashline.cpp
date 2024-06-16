@@ -1,11 +1,11 @@
 #include <bashline.h>
-#include <config.h>
 #include <global.h>
 #include <line.h>
 #include <panic.h>
 #include <pwd.h>
 #include <readline/history.h>
 #include <readline/readline.h>
+#include <shell_config.h>
 #include <unistd.h>
 
 #include <filesystem>

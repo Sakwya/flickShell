@@ -1,5 +1,5 @@
-#include <config.h>
 #include <panic.h>
+#include <shell_config.h>
 
 #include <iostream>
 void panic(const std::string& hint, bool exit_, int exit_code) {

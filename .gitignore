@@ -1,4 +1,3 @@
-generation
-flickShell
-build/
+build
 .vscode
+.deps

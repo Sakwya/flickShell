@@ -1,6 +1,6 @@
-#include <config.h>
 #include <line.h>
 #include <panic.h>
+#include <shell_config.h>
 
 bool is_white_space(char ch) { return WHITE_SPACE.find(ch) != string::npos; }
 
