@@ -301,6 +301,29 @@ int run_cmd(cmd* cmd_, int c_index = 1) {
   return exit_code;
 }
 
+void processing_rc() {
+  set_prompt();
+  int wait_status;
+  for (const auto& line : flickshrc) {
+    if (line.empty()) continue;
+    // deal with builtin commands
+    std::vector<std::string> args = string_split_protect(line, WHITE_SPACE);
+
+    if (is_builtin(args[0])) {
+      run_builtin(args[0], args);
+      continue;
+    }
+    // fork a new me to execute the typed command
+    if (fork_wrap() == 0) {
+      cmd* cmd_ = parse(line);
+      run_cmd(cmd_);
+      exit(0);  // child exit
+    }
+    wait(&wait_status);
+    check_wait_status(wait_status);
+  }
+}
+
 void reader_loop() {
   set_prompt();
   string line;

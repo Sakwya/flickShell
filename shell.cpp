@@ -10,9 +10,9 @@ using namespace std;
 void init_shell() {
   set_prompt();
   string filePath = home_dir + "/.flickshrc";
-  std::ifstream usrConfig(filePath);
-  if (!usrConfig.good()) {
-    usrConfig.close();
+  std::ifstream rc_flie(filePath);
+  if (!rc_flie.good()) {
+    rc_flie.close();
     std::ofstream newConfig(filePath, std::ios::app);
     if (!newConfig.is_open()) {
       panic("Failed to open file: " + filePath, true, 1);
@@ -23,13 +23,11 @@ void init_shell() {
     return;
   }
   std::string line;
-  while (std::getline(usrConfig, line)) {
+  while (std::getline(rc_flie, line)) {
     // 在这里处理每一行的内容，比如打印出来
-    if (line[0]=='#'){
-
-    }
+    flickshrc.push_back(line);
   }
-  usrConfig.close();
+  rc_flie.close();
 }
 
 int main() {
@@ -38,8 +36,8 @@ int main() {
   fflush(stdout);
   rl_on_new_line();
   rl_bind_key('\t', rl_complete);
-
   init_shell();
+  processing_rc();
   reader_loop();
   return 0;
 }
