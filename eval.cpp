@@ -304,11 +304,12 @@ int run_cmd(cmd* cmd_, int c_index = 1) {
 void processing_rc() {
   set_prompt();
   int wait_status;
-  for (const auto& line : flickshrc) {
+  for (auto& line : flickshrc) {
+    line = trim(line);
     if (line.empty()) continue;
+    if (line[0] == '#') continue;
     // deal with builtin commands
     std::vector<std::string> args = string_split_protect(line, WHITE_SPACE);
-
     if (is_builtin(args[0])) {
       run_builtin(args[0], args);
       continue;
@@ -331,9 +332,9 @@ void reader_loop() {
   while (true) {
     line = trim(read_line());
     if (line.empty()) continue;
+    if (line[0] == '#') continue;
     // deal with builtin commands
     std::vector<std::string> args = string_split_protect(line, WHITE_SPACE);
-
     if (is_builtin(args[0])) {
       run_builtin(args[0], args);
       continue;
