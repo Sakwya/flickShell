@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <global.h>
 #include <panic.h>
-
+#include <bashline.h>
 void change_directory(const std::vector<std::string>& args) {
     std::string route;
     int chdir_ret;
@@ -24,4 +24,6 @@ void change_directory(const std::vector<std::string>& args) {
     default:
         panic("too many arguments");
     }
+    set_prompt();
+    return;
 }

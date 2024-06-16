@@ -34,14 +34,15 @@ vector<string> string_split_protect(const string& str, const string& delims) {
       if (i == str.length()) panic("unclosed quote");
     } else if (str[i] == '\'') {
       i++;  // skip "
-      while (str[i] != '\"' && i < str.length()) {
+      while (str[i] != '\'' && i < str.length()) {
         tmp.push_back(str[i]);
         i++;
       }
       if (i == str.length()) panic("unclosed quote");
-    } else {
+    } else if (str[i] == '#')  // comment
+      break;
+    else
       tmp.push_back(str[i]);
-    }
   }
   if (tmp.length() > 0) vec.push_back(tmp);
   return vec;
