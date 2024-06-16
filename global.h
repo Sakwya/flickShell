@@ -5,7 +5,8 @@
 #include <VECTOR.h>
 extern std::string home_dir;
 extern std::string prompt;
-extern std::map<std::string, std::string> alias_map;
+extern std::unordered_map<std::string, std::string> alias_map;
 extern std::vector<std::string> flickshrc;
+extern std::unordered_map<std::string, std::string> command_map;
 
 #endif //GLOBAL_H
